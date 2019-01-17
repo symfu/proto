@@ -32,7 +32,7 @@ class AutoBuffer;
  * return value:
  */
 SOCKET  block_socket_connect(socket_address& _address, SocketBreaker& _breaker, int& _errcode, int32_t _timeout=-1/*ms*/);
-int     block_socket_send(SOCKET _sock, const void* _buffer, size_t _len, SocketBreaker& _breaker, int &_errcode, int _timeout=-1);
+int     block_socket_send(SOCKET _sock, const void* _buffer, size_t _len, SocketBreaker& _breaker, int &_errcode, uint32_t taskid, int _timeout=-1);
 int     block_socket_recv(SOCKET _sock, AutoBuffer& _buffer, size_t _max_size, SocketBreaker& _breaker, int &_errcode, int _timeout=-1, bool _wait_full_size=false);
 #endif
 

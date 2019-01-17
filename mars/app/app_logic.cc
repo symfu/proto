@@ -47,13 +47,14 @@
 namespace mars {
 namespace app {
 
-static Callback* sg_callback = NULL;
 
-void SetCallback(Callback* const callback) {
-	sg_callback = callback;
-}
 
 #ifndef ANDROID
+    static Callback* sg_callback = NULL;
+    
+    void SetCallback(Callback* const callback) {
+        sg_callback = callback;
+    }
     
     static mars::comm::ProxyInfo sg_proxyInfo;
     static bool sg_gotProxy = false;
@@ -182,7 +183,7 @@ void SetCallback(Callback* const callback) {
 		xassert2(sg_callback != NULL);
         
         static DeviceInfo device_info;
-        if (!device_info.devicename.empty() || !device_info.devicetype.empty()) {
+        if (!device_info.clientid.empty() || !device_info.deviceversion.empty()) {
             return device_info;
         }
         

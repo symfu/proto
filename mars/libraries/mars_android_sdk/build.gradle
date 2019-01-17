@@ -11,6 +11,9 @@ android {
             moduleName = "mmnet"
             abiFilter "armeabi"
             abiFilter "armeabi-v7a"
+            abiFilter "arm64-v8a"
+            abiFilter "x86"
+            abiFilter "x86_64"
         }
     }
     sourceSets {
@@ -34,6 +37,9 @@ android {
         release {
             proguardFile 'proguard-rules.pro'
         }
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 

@@ -67,6 +67,20 @@
 			remoteGlobalIDString = 3170A026177887B0004F5DDA;
 			remoteInfo = sdt;
 		};
+		2E0A75D11FADFFC60061F001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2E9864C21FADDD73002430A8 /* proto.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2E9864B51FADDD73002430A8;
+			remoteInfo = proto;
+		};
+		2E9864C61FADDD74002430A8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2E9864C21FADDD73002430A8 /* proto.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 2E9864B61FADDD73002430A8;
+			remoteInfo = proto;
+		};
 		5587E86A1C731962000009B4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 55AC98BE1C72FFE7007F9F97 /* openssl.xcodeproj */;
@@ -128,6 +142,7 @@
 		1371BF9D19791FE800E4C614 /* log.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = log.xcodeproj; path = log/log.xcodeproj; sourceTree = "<group>"; };
 		1F37A35C1C7E0B1100A9780B /* stn.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = stn.xcodeproj; path = stn/stn.xcodeproj; sourceTree = "<group>"; };
 		1FD4FAAE1C999CC100125228 /* sdt.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sdt.xcodeproj; path = sdt/sdt.xcodeproj; sourceTree = "<group>"; };
+		2E9864C21FADDD73002430A8 /* proto.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = proto.xcodeproj; path = proto/proto.xcodeproj; sourceTree = "<group>"; };
 		3170A027177887B0004F5DDA /* libmars-open-iphone.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libmars-open-iphone.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3170A02A177887B0004F5DDA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		55A8D1C51C8D5D4C0057DD59 /* app.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = app.xcodeproj; path = app/app.xcodeproj; sourceTree = "<group>"; };
@@ -179,9 +194,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2E9864C31FADDD73002430A8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2E9864C71FADDD74002430A8 /* libproto.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		3170A01E177887B0004F5DDA = {
 			isa = PBXGroup;
 			children = (
+				2E9864C21FADDD73002430A8 /* proto.xcodeproj */,
 				1FD4FAAE1C999CC100125228 /* sdt.xcodeproj */,
 				55A8D1CB1C8D5D540057DD59 /* baseevent.xcodeproj */,
 				55A8D1C51C8D5D4C0057DD59 /* app.xcodeproj */,
@@ -249,6 +273,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				2E0A75D21FADFFC60061F001 /* PBXTargetDependency */,
 				1FD4FAB51C999D2200125228 /* PBXTargetDependency */,
 				55A8D1D21C8D5D5E0057DD59 /* PBXTargetDependency */,
 				55A8D1D41C8D5D5E0057DD59 /* PBXTargetDependency */,
@@ -303,6 +328,10 @@
 					ProjectRef = 55AC98BE1C72FFE7007F9F97 /* openssl.xcodeproj */;
 				},
 				{
+					ProductGroup = 2E9864C31FADDD73002430A8 /* Products */;
+					ProjectRef = 2E9864C21FADDD73002430A8 /* proto.xcodeproj */;
+				},
+				{
 					ProductGroup = 1FD4FAAF1C999CC100125228 /* Products */;
 					ProjectRef = 1FD4FAAE1C999CC100125228 /* sdt.xcodeproj */;
 				},
@@ -345,6 +374,13 @@
 			fileType = archive.ar;
 			path = libsdt.a;
 			remoteRef = 1FD4FAB21C999CC200125228 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2E9864C71FADDD74002430A8 /* libproto.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libproto.a;
+			remoteRef = 2E9864C61FADDD74002430A8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		55A8D1CA1C8D5D4D0057DD59 /* libapp.a */ = {
@@ -417,6 +453,11 @@
 			isa = PBXTargetDependency;
 			name = sdt;
 			targetProxy = 1FD4FAB41C999D2200125228 /* PBXContainerItemProxy */;
+		};
+		2E0A75D21FADFFC60061F001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = proto;
+			targetProxy = 2E0A75D11FADFFC60061F001 /* PBXContainerItemProxy */;
 		};
 		5587E86B1C731962000009B4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

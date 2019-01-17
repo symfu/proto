@@ -73,9 +73,11 @@ class NetCore {
     void    StartTask(const Task& _task);
     void    StopTask(uint32_t _taskid);
     bool    HasTask(uint32_t _taskid) const;
+    Task    GetTask(uint32_t _taskid) const;
     void    ClearTasks();
     void    RedoTasks();
     void    RetryTasks(ErrCmdType _err_type, int _err_code, int _fail_handle, uint32_t _src_taskid);
+    unsigned int GetTaskCount();
 
     void    MakeSureLongLinkConnect();
     bool    LongLinkIsConnected();

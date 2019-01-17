@@ -127,7 +127,8 @@ SOCKET ProxyTest::__Connect(const mars::comm::ProxyInfo& _proxy_info, const std:
     
     ComplexConnect com_connect(kLonglinkConnTimeout, kLonglinkConnInteral, kLonglinkConnInteral, kLonglinkConnMax);
     
-    SOCKET sock = com_connect.ConnectImpatient(vecaddr, testproxybreak_, NULL, _proxy_info.type, proxy_addr, _proxy_info.username, _proxy_info.password);
+    int serverDown = 0;
+    SOCKET sock = com_connect.ConnectImpatient(vecaddr, testproxybreak_, serverDown, NULL, _proxy_info.type, proxy_addr, _proxy_info.username, _proxy_info.password);
     delete proxy_addr;
     
     if (INVALID_SOCKET == sock) {
@@ -204,7 +205,7 @@ int ProxyTest::__ReadWrite(SOCKET _sock, const mars::comm::ProxyInfo& _proxy_inf
     req_builder.HeaderToBuffer(out_buff);
     
     int err_code = 0;
-    int send_ret = block_socket_send(_sock, (const unsigned char*)out_buff.Ptr(), (unsigned int)out_buff.Length(), testproxybreak_, err_code);
+    int send_ret = block_socket_send(_sock, (const unsigned char*)out_buff.Ptr(), (unsigned int)out_buff.Length(), testproxybreak_, err_code, 0);
     
     if (send_ret < 0) {
         xerror2(TSF"test proxy Error, ret:%0, errno:%1, nread:%_, nwrite:%_", send_ret, strerror(err_code), socket_nread(_sock), socket_nwrite(_sock));

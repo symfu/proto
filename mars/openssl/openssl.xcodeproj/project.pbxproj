@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		13F0FA7B197557FD00F2C2B2 /* aes_crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 13F0F95F197557FD00F2C2B2 /* aes_crypt.c */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
 		13F0FA7C197557FD00F2C2B2 /* ecdh_crypt.c in Sources */ = {isa = PBXBuildFile; fileRef = 13F0F960197557FD00F2C2B2 /* ecdh_crypt.c */; };
 		13F0FA7D197557FD00F2C2B2 /* ecdsa_verify.c in Sources */ = {isa = PBXBuildFile; fileRef = 13F0F961197557FD00F2C2B2 /* ecdsa_verify.c */; };
 		13F0FA7E197557FD00F2C2B2 /* md5_digest.c in Sources */ = {isa = PBXBuildFile; fileRef = 13F0F962197557FD00F2C2B2 /* md5_digest.c */; settings = {COMPILER_FLAGS = "-fvisibility=default"; }; };
@@ -38,11 +37,9 @@
 /* Begin PBXFileReference section */
 		13F0F95C197557FD00F2C2B2 /* e_os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = e_os.h; sourceTree = "<group>"; };
 		13F0F95D197557FD00F2C2B2 /* e_os2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = e_os2.h; sourceTree = "<group>"; };
-		13F0F95F197557FD00F2C2B2 /* aes_crypt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes_crypt.c; sourceTree = "<group>"; };
 		13F0F960197557FD00F2C2B2 /* ecdh_crypt.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ecdh_crypt.c; sourceTree = "<group>"; };
 		13F0F961197557FD00F2C2B2 /* ecdsa_verify.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ecdsa_verify.c; sourceTree = "<group>"; };
 		13F0F962197557FD00F2C2B2 /* md5_digest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = md5_digest.c; sourceTree = "<group>"; };
-		13F0F965197557FD00F2C2B2 /* aes_crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes_crypt.h; sourceTree = "<group>"; };
 		13F0F966197557FD00F2C2B2 /* ecdh_crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ecdh_crypt.h; sourceTree = "<group>"; };
 		13F0F967197557FD00F2C2B2 /* ecdsa_verify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ecdsa_verify.h; sourceTree = "<group>"; };
 		13F0F968197557FD00F2C2B2 /* md5_digest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = md5_digest.h; sourceTree = "<group>"; };
@@ -157,7 +154,6 @@
 			children = (
 				3D9E9AC51CA129FB00AF0E43 /* rsa_private_decrypt.c */,
 				4FBCE3EA1A0B6AC10001F6FA /* crypto */,
-				13F0F95F197557FD00F2C2B2 /* aes_crypt.c */,
 				13F0F960197557FD00F2C2B2 /* ecdh_crypt.c */,
 				13F0F961197557FD00F2C2B2 /* ecdsa_verify.c */,
 				13F0F962197557FD00F2C2B2 /* md5_digest.c */,
@@ -172,7 +168,6 @@
 				3D9E9AC01CA1299900AF0E43 /* gen_rsa_key_pair.h */,
 				3D9E9AC11CA1299900AF0E43 /* rsa_private_decrypt.h */,
 				3D9E9AC21CA1299900AF0E43 /* rsa_pss_sha256.h */,
-				13F0F965197557FD00F2C2B2 /* aes_crypt.h */,
 				13F0F966197557FD00F2C2B2 /* ecdh_crypt.h */,
 				13F0F967197557FD00F2C2B2 /* ecdsa_verify.h */,
 				13F0F968197557FD00F2C2B2 /* md5_digest.h */,
@@ -367,7 +362,6 @@
 			files = (
 				3D9E9AC41CA129EC00AF0E43 /* gen_rsa_key_pair.cpp in Sources */,
 				3DA3246C1DF97C5800A5D1CB /* rsa_crypt.cpp in Sources */,
-				13F0FA7B197557FD00F2C2B2 /* aes_crypt.c in Sources */,
 				3D18BD841C9BE25100853A83 /* test_rsa_pss_sha256.cpp in Sources */,
 				13F0FA7C197557FD00F2C2B2 /* ecdh_crypt.c in Sources */,
 				13F0FA7D197557FD00F2C2B2 /* ecdsa_verify.c in Sources */,

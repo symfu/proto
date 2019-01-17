@@ -21,7 +21,7 @@
 #include "shortlink_task_manager.h"
 
 #include <algorithm>
-
+#include <typeinfo>
 #include "boost/bind.hpp"
 
 #include "mars/app/app.h"
@@ -40,6 +40,8 @@
 
 using namespace mars::stn;
 using namespace mars::app;
+
+extern unsigned char * decrypt_data(const unsigned char* data, unsigned int data_length, unsigned int *output_length, bool rootKey, bool checkTime);
 
 #define AYNC_HANDLER asyncreg_.Get()
 #define RETURN_SHORTLINK_SYNC2ASYNC_FUNC_TITLE(func, title) RETURN_SYNC2ASYNC_FUNC_TITLE(func, title, )
@@ -89,6 +91,10 @@ bool ShortLinkTaskManager::StartTask(const Task& _task) {
     return true;
 }
 
+unsigned int ShortLinkTaskManager::GetTaskCount() {
+    return (unsigned int)lst_cmd_.size();
+}
+
 bool ShortLinkTaskManager::StopTask(uint32_t _taskid) {
     xverbose_function();
 
@@ -124,6 +130,22 @@ bool ShortLinkTaskManager::HasTask(uint32_t _taskid) const {
     }
 
     return false;
+}
+
+Task ShortLinkTaskManager::GetTask(uint32_t _taskid) const {
+    xverbose_function();
+    
+    std::list<TaskProfile>::const_iterator first = lst_cmd_.begin();
+    std::list<TaskProfile>::const_iterator last = lst_cmd_.end();
+    
+    while (first != last) {
+        if (_taskid == first->task.taskid) {
+            return first->task;
+        }
+        ++first;
+    }
+    
+    return Task(0);
 }
 
 void ShortLinkTaskManager::ClearTasks() {
@@ -353,7 +375,20 @@ void ShortLinkTaskManager::__OnResponse(ShortLinkInterface* _worker, ErrCmdType 
 	}
 
 	int err_code = 0;
-	int handle_type = Buf2Resp(it->task.taskid, it->task.user_context, body, extension, err_code, Task::kChannelShort);
+    int handle_type = 0;
+    if ((it->task.cgi == "/im" || it->task.cgi == "/route") && body->Length() > 0) {
+        AutoBuffer new_body;
+        new_body.Write(body->Ptr(), 1);
+        unsigned int dataLen = 0;
+        
+        unsigned char* pdata = (unsigned char* )decrypt_data((const unsigned char*)body->Ptr() + 1,(unsigned int) body->Length() -1, &dataLen, false, true);
+        new_body.Write(pdata, dataLen);
+        free(pdata);
+        
+        handle_type = Buf2Resp(it->task.taskid, it->task.user_context, new_body, extension, err_code, Task::kChannelShort);
+    } else {
+        handle_type = Buf2Resp(it->task.taskid, it->task.user_context, body, extension, err_code, Task::kChannelShort);
+    }
 
 	switch(handle_type){
 		case kTaskFailHandleNoError:

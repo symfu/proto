@@ -139,7 +139,7 @@ int DecodeBase64(const unsigned char* sSrc, unsigned char* sTarget, const int nS
             break;
     }
 
-    return (target_size);
+return (target_size);
 }
 
 static void init_conversion_tables(void) {

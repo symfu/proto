@@ -94,12 +94,18 @@ namespace stn{
     // async function.
 	extern void (*StartTask)(const Task& task);
     
+    // get running or waiting task count
+    extern unsigned int (*GetTaskCount)();
+    
     // sync function
 	extern void (*StopTask)(uint32_t taskid);
     
     // check whether task's list has the task or not.
 	extern bool (*HasTask)(uint32_t taskid);
 
+    // 返回短链接task
+    extern Task (*GetTask)(uint32_t taskid);
+    
     // reconnect longlink and redo all task
     // when you change svr ip, you must call this function.
 	extern void (*RedoTasks)();

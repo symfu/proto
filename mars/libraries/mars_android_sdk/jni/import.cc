@@ -1,14 +1,17 @@
 /**
  * created on : 2012-07-19
- * author : yanguoyue 
+ * author : yanguoyue
  */
 
 void ImportLibs() {
-	
+
 #ifdef MARS_STN
 	extern void ExportSTN();
 	ExportSTN();
 #endif
+
+	extern void ExportProto();
+	ExportProto();
 
 #ifdef MARS_SMC
 	extern void ExportSMC();
@@ -43,5 +46,5 @@ void ImportLibs() {
 #ifdef MARS_STATIC_XLOG
 	extern void ExportXlog();
 	ExportXlog();
-#endif	
+#endif
 }

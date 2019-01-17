@@ -239,7 +239,8 @@ SOCKET ShortLink::__RunConnect(ConnectProfile& _conn_profile) {
     ShortLinkConnectObserver connect_observer(*this);
 	ComplexConnect conn(kShortlinkConnTimeout, kShortlinkConnInterval);
 
-    SOCKET sock = conn.ConnectImpatient(vecaddr, breaker_, &connect_observer, _conn_profile.proxy_info.type, proxy_addr, _conn_profile.proxy_info.username, _conn_profile.proxy_info.password);
+    int serverDown = 0;
+    SOCKET sock = conn.ConnectImpatient(vecaddr, breaker_, serverDown, &connect_observer, _conn_profile.proxy_info.type, proxy_addr, _conn_profile.proxy_info.username, _conn_profile.proxy_info.password);
     delete proxy_addr;
 
     _conn_profile.conn_rtt = conn.IndexRtt();
@@ -327,7 +328,7 @@ void ShortLink::__RunReadWrite(SOCKET _socket, int& _err_type, int& _err_code, C
 	xgroup2_define(group_send);
 	xinfo2(TSF"task socket send sock:%_, %_ http len:%_, ", _socket, message.String(), out_buff.Length()) >> group_send;
 
-	int send_ret = block_socket_send(_socket, (const unsigned char*)out_buff.Ptr(), (unsigned int)out_buff.Length(), breaker_, _err_code);
+	int send_ret = block_socket_send(_socket, (const unsigned char*)out_buff.Ptr(), (unsigned int)out_buff.Length(), breaker_, _err_code, task_.taskid);
 
 	if (send_ret < 0) {
 		xerror2(TSF"Send Request Error, ret:%0, errno:%1, nread:%_, nwrite:%_", send_ret, strerror(_err_code), socket_nread(_socket), socket_nwrite(_socket)) >> group_send;

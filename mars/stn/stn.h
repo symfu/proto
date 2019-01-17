@@ -90,6 +90,9 @@ public:
     std::string report_arg;  // user for cgi report
     
     std::vector<std::string> shortlink_host_list;
+    virtual ~Task(){}
+    virtual const std::string description() const;
+    bool isRoute;
 };
 
 enum TaskFailHandleType {

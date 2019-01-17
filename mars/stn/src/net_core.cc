@@ -344,6 +344,10 @@ void NetCore::StartTask(const Task& _task) {
     ASYNC_BLOCK_END
 }
 
+unsigned int NetCore::GetTaskCount() {
+    return longlink_task_manager_->GetTaskCount() + shortlink_task_manager_->GetTaskCount();
+}
+
 void NetCore::StopTask(uint32_t _taskid) {
    ASYNC_BLOCK_START
     
@@ -370,6 +374,17 @@ bool NetCore::HasTask(uint32_t _taskid) const {
     
 	return false;
 }
+
+Task NetCore::GetTask(uint32_t _taskid) const {
+    WAIT_SYNC2ASYNC_FUNC(boost::bind(&NetCore::GetTask, this, _taskid));
+    
+//#ifdef USE_LONG_LINK
+//    if (longlink_task_manager_->HasTask(_taskid)) return true;
+//    if (zombie_task_manager_->HasTask(_taskid)) return true;
+//#endif
+    return shortlink_task_manager_->GetTask(_taskid);
+}
+
 
 void NetCore::ClearTasks() {
     ASYNC_BLOCK_START
@@ -662,7 +677,10 @@ void NetCore::__ConnStatusCallBack() {
 			else {
 				all_connstatus = kNetworkUnkown;
 			}
-            longlink_connstatus = kServerFailed;
+            if(longlink_task_manager_->LongLinkChannel().ServerDown())
+                longlink_connstatus = kServerDown;
+            else
+                longlink_connstatus = kServerFailed;
 			break;
 
 		case LongLink::kConnectIdle:
@@ -681,7 +699,6 @@ void NetCore::__ConnStatusCallBack() {
 			else {
 				all_connstatus = kConnecting;
 			}
-            
             longlink_connstatus = kConnecting;
 			break;
 

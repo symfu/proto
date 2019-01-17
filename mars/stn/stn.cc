@@ -21,13 +21,13 @@
 #include "mars/stn/stn.h"
 
 #include "mars/comm/thread/atomic_oper.h"
-
+#include <sstream>
 
 namespace mars{
     namespace stn{
         
 static uint32_t gs_taskid = 1;
-Task::Task():Task(atomic_inc32(&gs_taskid)) {}
+Task::Task():Task(atomic_inc32(&gs_taskid) % 254 + 1) {}
         
 Task::Task(uint32_t _taskid) {
     
@@ -49,7 +49,45 @@ Task::Task(uint32_t _taskid) {
     server_process_cost = -1;
     total_timetout = -1;
     user_context = NULL;
-
+    isRoute = false;
+}
+const std::string Task::description() const {
+    std::stringstream stream;
+    stream << "taskid:";
+    stream << taskid;
+    stream << " cmdid:";
+    stream << cmdid;
+    stream << " channel_id:";
+    stream << channel_id;
+    stream << " channel_select:";
+    stream << channel_select;
+    stream << " cgi:";
+    stream << cgi;
+    
+    stream << " send_only:";
+    stream << send_only;
+    stream << " need_authed:";
+    stream << need_authed;
+    stream << " limit_flow:";
+    stream << limit_flow;
+    
+    stream << " limit_frequency:";
+    stream << limit_frequency;
+    stream << " network_status_sensitive:";
+    stream << network_status_sensitive;
+    stream << " channel_strategy:";
+    stream << channel_strategy;
+    stream << " priority:";
+    stream << priority;
+    
+    stream << " retry_count:";
+    stream << retry_count;
+    stream << " server_process_cost:";
+    stream << server_process_cost;
+    stream << " total_timetout:";
+    stream << total_timetout;
+    
+    return stream.str();
 }
         
     }

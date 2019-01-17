@@ -336,6 +336,10 @@ LongLink::TLongLinkStatus LongLink::ConnectStatus() const {
     return connectstatus_;
 }
 
+bool LongLink::ServerDown() const {
+    return serverdown_;
+}
+
 void LongLink::__ConnectStatus(TLongLinkStatus _status) {
     if (_status == connectstatus_) return;
     xinfo2(TSF"connect status from:%0 to:%1, nettype:%_", connectstatus_, _status, ::getNetInfo());
@@ -433,7 +437,8 @@ SOCKET LongLink::__RunConnect(ConnectProfile& _conn_profile) {
     xinfo2(TSF"task socket dns ip:%_ proxytype:%_ useproxy:%_", NetSource::DumpTable(ip_items), proxy_info.type, use_proxy);
     
     bool isnat64 = ELocalIPStack_IPv6 == local_ipstack_detect();
-    
+    int serverDown = 0;
+    serverdown_ = false;
     for (unsigned int i = 0; i < ip_items.size(); ++i) {
         if (use_proxy) {
             vecaddr.push_back(socket_address(ip_items[i].str_ip.c_str(), ip_items[i].port));
@@ -444,6 +449,7 @@ SOCKET LongLink::__RunConnect(ConnectProfile& _conn_profile) {
     
     if (vecaddr.empty()) {
         xerror2("task socket close sock:-1 vecaddr empty");
+        serverdown_ = true;
         __ConnectStatus(kConnectFailed);
         __RunResponseError(kEctDns, kEctDnsMakeSocketPrepared, _conn_profile);
         return INVALID_SOCKET;
@@ -485,7 +491,8 @@ SOCKET LongLink::__RunConnect(ConnectProfile& _conn_profile) {
     LongLinkConnectObserver connect_observer(*this, ip_items);
     ComplexConnect com_connect(kLonglinkConnTimeout, kLonglinkConnInteral, kLonglinkConnInteral, kLonglinkConnMax);
 
-    SOCKET sock = com_connect.ConnectImpatient(vecaddr, connectbreak_, &connect_observer, proxy_info.type, proxy_addr, proxy_info.username, proxy_info.password);
+    
+    SOCKET sock = com_connect.ConnectImpatient(vecaddr, connectbreak_, serverDown, &connect_observer, proxy_info.type, proxy_addr, proxy_info.username, proxy_info.password);
 
     delete proxy_addr;
  
@@ -498,7 +505,9 @@ SOCKET LongLink::__RunConnect(ConnectProfile& _conn_profile) {
     
     if (INVALID_SOCKET == sock) {
         xwarn2(TSF"task socket connect fail sock:-1, costtime:%0", com_connect.TotalCost());
-        
+        if (serverDown > 0) {
+            serverdown_ = true;
+        }
         __ConnectStatus(kConnectFailed);
         
         if (kNone == disconnectinternalcode_) __RunResponseError(kEctSocket, kEctSocketMakeSocketPrepared, _conn_profile, false);

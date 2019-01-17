@@ -36,20 +36,24 @@ public class AppLogic {
      * 终端设备信息类
      */
     public static class DeviceInfo {
+        //clientid
+        public String  clientid;
+        //platform  ios/android/web/osx/windows etc
+        public int  platform = 2;
 
-        /**
-         * 设备名称
-         */
-        public String devicename = "";
+        public String packagename;
+        public int pushtype;
+        //设备型号
+        public String device;
+        //设备版本号
+        public String deviceversion;
+        //设备名称 某某的iphone
+        public String phonename;
+        public String language;
+        public String carriername;
 
-        /**
-         * 设备类型
-         */
-        public String devicetype = "";
-
-        public DeviceInfo(String devicename, String devicetype) {
-            this.devicename = devicename;
-            this.devicetype = devicetype;
+        public DeviceInfo(String clientid) {
+            this.clientid = clientid;
         }
     }
 

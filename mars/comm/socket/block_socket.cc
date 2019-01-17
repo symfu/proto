@@ -111,11 +111,12 @@ SOCKET  block_socket_connect(const socket_address& _address, SocketBreaker& _bre
     return sock;
 }
 
+extern void (*shortlink_progress)(uint32_t task_id, uint32_t writed, uint32_t total);
 
 /*
  * return value:
  */
-int block_socket_send(SOCKET _sock, const void* _buffer, size_t _len, SocketBreaker& _breaker, int &_errcode, int _timeout) {
+int block_socket_send(SOCKET _sock, const void* _buffer, size_t _len, SocketBreaker& _breaker, int &_errcode, uint32_t taskid, int _timeout) {
     uint64_t start = gettickcount();
     int32_t cost_time = 0;
     size_t sent_len = 0;
@@ -169,6 +170,7 @@ int block_socket_send(SOCKET _sock, const void* _buffer, size_t _len, SocketBrea
             _errcode = socket_error(_sock);
             return -1;
         }
+        shortlink_progress(taskid, sent_len, _len);
     }
 }
 

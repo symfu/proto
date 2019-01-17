@@ -146,7 +146,7 @@ DeviceInfo GetDeviceInfo() {
 	xverbose_function();
 
 	static DeviceInfo s_info;
-	if (!s_info.devicename.empty() || !s_info.devicetype.empty()) {
+	if (!s_info.clientid.empty() || !s_info.device.empty()) {
 		return s_info;
 	}
 
@@ -160,17 +160,51 @@ DeviceInfo GetDeviceInfo() {
 		return s_info;
 	}
 
-	jstring devicename_jstr = (jstring)JNU_GetField(env, ret_obj, "devicename", "Ljava/lang/String;").l;
-
-	if (NULL != devicename_jstr) {
-		s_info.devicename = ScopedJstring(env, devicename_jstr).GetChar();
-		env->DeleteLocalRef(devicename_jstr);
+	jstring clientid_jstr = (jstring)JNU_GetField(env, ret_obj, "clientid", "Ljava/lang/String;").l;
+	if (NULL != clientid_jstr) {
+		s_info.clientid = ScopedJstring(env, clientid_jstr).GetChar();
+		env->DeleteLocalRef(clientid_jstr);
 	}
 
-	jstring devicetype_jstr = (jstring)JNU_GetField(env, ret_obj, "devicetype", "Ljava/lang/String;").l;
-	if (NULL != devicetype_jstr) {
-		s_info.devicetype = ScopedJstring(env, devicetype_jstr).GetChar();
-		env->DeleteLocalRef(devicetype_jstr);
+    s_info.platform = PlatformType_Android;
+
+    jstring packagename_jstr = (jstring)JNU_GetField(env, ret_obj, "packagename", "Ljava/lang/String;").l;
+	if (NULL != packagename_jstr) {
+		s_info.packagename = ScopedJstring(env, packagename_jstr).GetChar();
+		env->DeleteLocalRef(packagename_jstr);
+	}
+
+    jint pushtype_ji = (jint)JNU_GetField(env, ret_obj, "pushtype", "I").i;
+	s_info.pushtype = pushtype_ji;
+
+    jstring device_jstr = (jstring)JNU_GetField(env, ret_obj, "device", "Ljava/lang/String;").l;
+	if (NULL != device_jstr) {
+		s_info.device = ScopedJstring(env, device_jstr).GetChar();
+		env->DeleteLocalRef(device_jstr);
+	}
+
+    jstring deviceversion_jstr = (jstring)JNU_GetField(env, ret_obj, "deviceversion", "Ljava/lang/String;").l;
+	if (NULL != deviceversion_jstr) {
+		s_info.deviceversion = ScopedJstring(env, deviceversion_jstr).GetChar();
+		env->DeleteLocalRef(deviceversion_jstr);
+	}
+
+	jstring phonename_jstr = (jstring)JNU_GetField(env, ret_obj, "phonename", "Ljava/lang/String;").l;
+  	if (NULL != phonename_jstr) {
+   		s_info.phonename = ScopedJstring(env, phonename_jstr).GetChar();
+   		env->DeleteLocalRef(phonename_jstr);
+   	}
+
+    jstring language_jstr = (jstring)JNU_GetField(env, ret_obj, "language", "Ljava/lang/String;").l;
+	if (NULL != language_jstr) {
+		s_info.language = ScopedJstring(env, language_jstr).GetChar();
+		env->DeleteLocalRef(language_jstr);
+	}
+
+    jstring carriername_jstr = (jstring)JNU_GetField(env, ret_obj, "carriername", "Ljava/lang/String;").l;
+	if (NULL != carriername_jstr) {
+		s_info.carriername = ScopedJstring(env, carriername_jstr).GetChar();
+		env->DeleteLocalRef(carriername_jstr);
 	}
 
 	return s_info;

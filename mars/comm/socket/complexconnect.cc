@@ -435,9 +435,9 @@ private:
 static bool __isconnecting(const ConnectCheckFSM* _ref) { return NULL != _ref && INVALID_SOCKET != _ref->Socket(); }
 }
 
-SOCKET ComplexConnect::ConnectImpatient(const std::vector<socket_address>& _vecaddr, SocketBreaker& _breaker, MComplexConnect* _observer,
+SOCKET ComplexConnect::ConnectImpatient(const std::vector<socket_address>& _vecaddr, SocketBreaker& _breaker, int &serverDown, MComplexConnect* _observer,
                                             mars::comm::ProxyType _proxy_type, const socket_address* _proxy_addr,
-                                            const std::string& _proxy_username, const std::string& _proxy_pwd) {
+                                        const std::string& _proxy_username, const std::string& _proxy_pwd) {
     trycount_ = 0;
     index_ = -1;
     errcode_ = 0;
@@ -479,6 +479,7 @@ SOCKET ComplexConnect::ConnectImpatient(const std::vector<socket_address>& _veca
     unsigned int index = 0;
     SOCKET retsocket = INVALID_SOCKET;
 
+    serverDown = 0;
     do {
         curtime = gettickcount();
         // timeout and connect
@@ -556,11 +557,19 @@ SOCKET ComplexConnect::ConnectImpatient(const std::vector<socket_address>& _veca
             if (TcpClientFSM::EEnd == vecsocketfsm[i]->Status()) {
                 if (_observer) _observer->OnFinished(i, socket_address(&vecsocketfsm[i]->Address()), vecsocketfsm[i]->Socket(), vecsocketfsm[i]->Error(),
                                                          vecsocketfsm[i]->Rtt(), vecsocketfsm[i]->TotalRtt(), (int)(gettickcount() - starttime));
+                
+                if ((vecsocketfsm[i]->Error() == 60 || vecsocketfsm[i]->Error() == 64 || vecsocketfsm[i]->Error() == 61) && serverDown >= 0) {
+                    serverDown = 1;
+                } else {
+                    serverDown = -1;
+                }
 
                 vecsocketfsm[i]->Close();
                 delete vecsocketfsm[i];
                 vecsocketfsm[i] = NULL;
                 lasterror = -1;
+
+                
                 continue;
             }
 

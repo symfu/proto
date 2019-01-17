@@ -25,6 +25,12 @@
 #include "mars/comm/thread/lock.h"
 
 namespace mars{
+    
+    namespace stn{
+        extern std::string gHost;
+        extern void RequestRoute(bool force);
+    }
+    
     namespace baseevent{
 
         void OnCreate()
@@ -49,6 +55,10 @@ namespace mars{
         
         void OnForeground(bool _isforeground)
         {
+            if (_isforeground && mars::stn::gHost.empty()) {
+                mars::stn::RequestRoute(false);
+                return;
+            }
             GetSignalOnForeground()(_isforeground);
         }
         
@@ -70,6 +80,9 @@ namespace mars{
             g_apn_info.extra_info.clear();
             lock.unlock();
 #endif
+            if (mars::stn::gHost.empty()) {
+                mars::stn::RequestRoute(false);
+            }
             GetSignalOnNetworkChange()();
         }
         

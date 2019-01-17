@@ -35,6 +35,10 @@ android {
             proguardFile 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 

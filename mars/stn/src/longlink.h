@@ -129,6 +129,7 @@ class LongLink {
     bool            MakeSureConnected(bool* _newone = NULL);
     void            Disconnect(TDisconnectInternalCode _scene);
     TLongLinkStatus ConnectStatus() const;
+    bool ServerDown() const;
 
     ConnectProfile  Profile() const   { return conn_profile_; }
     tickcount_t&    GetLastRecvTime() { return lastrecvtime_; }
@@ -171,6 +172,7 @@ class LongLink {
     SocketBreaker                               connectbreak_;
 	SocketBreaker             testproxybreak_;
     TLongLinkStatus                             connectstatus_;
+    bool                             serverdown_;
     ConnectProfile                              conn_profile_;
     TDisconnectInternalCode                     disconnectinternalcode_;
     

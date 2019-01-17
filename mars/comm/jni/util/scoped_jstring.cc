@@ -95,6 +95,14 @@ const char* ScopedJstring::GetChar() const {
     return char_;
 }
 
+const char* ScopedJstring::GetCharWithDefault(const char *defaultStr) const {
+    if (env_->ExceptionOccurred()) {
+        return defaultStr;
+    }
+
+    return char_ != NULL ? char_ : defaultStr;
+}
+
 jstring ScopedJstring::GetJstr() const {
     if (env_->ExceptionOccurred()) {
         return NULL;

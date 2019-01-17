@@ -138,6 +138,13 @@ void (*StartTask)(const Task& _task)
     STN_WEAK_CALL(StartTask(_task));
 };
 
+unsigned int (*GetTaskCount)()
+= []() {
+    unsigned int taskcount = 0;
+    STN_WEAK_CALL_RETURN(GetTaskCount(), taskcount);
+    return taskcount;
+};
+    
 void (*StopTask)(uint32_t _taskid)
 = [](uint32_t _taskid) {
     STN_WEAK_CALL(StopTask(_taskid));
@@ -150,6 +157,13 @@ bool (*HasTask)(uint32_t _taskid)
 	return has_task;
 };
 
+Task (*GetTask)(uint32_t _taskid)
+= [](uint32_t _taskid) {
+    Task task;
+    STN_WEAK_CALL_RETURN(GetTask(_taskid), task);
+    return task;
+};
+    
 void (*RedoTasks)()
 = []() {
    STN_WEAK_CALL(RedoTasks());
@@ -247,7 +261,7 @@ uint32_t (*getNoopTaskID)()
 
 void network_export_symbols_0(){}
 
-#ifndef ANDROID
+//#ifndef ANDROID
 	//callback functions
 bool (*MakesureAuthed)()
 = []() {
@@ -345,7 +359,7 @@ void (*ReportTaskLimited)(int _check_type, const Task& _task, unsigned int& _par
 void (*ReportDnsProfile)(const DnsProfile& _dns_profile)
 = [](const DnsProfile& _dns_profile) {
 };
-#endif
+//#endif
 
 }
 }

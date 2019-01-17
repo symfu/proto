@@ -28,7 +28,7 @@ LOCAL_STATIC_LIBRARIES += static_xlog comm
 
 LOCAL_LDLIBS += -llog -lz
 #LOCAL_CPPFLAGS += -frtti
-#LOCAL_CFLAGS += -Werror -Wextra -Wall -Wno-error=conversion -Wno-error=sign-conversion -Werror=sign-compare 
+#LOCAL_CFLAGS += -Wextra -Wall -Wno-error=conversion -Wno-error=sign-conversion
 #LOCAL_CFLAGS += -Wno-unused-parameter -Wno-missing-field-initializers 
 #LOCAL_CFLAGS +=  -fdata-sections
 LOCAL_LDFLAGS += -Wl,--gc-sections,--version-script=../../log/jni/export.exp 
