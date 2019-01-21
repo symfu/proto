@@ -9,6 +9,8 @@
 #include "MessageDB.h"
 #include "DB2.h"
 #include "proto/stn_callback.h"
+#include "Proto/conversation.h"
+#include "mars/comm/thread/atomic_oper.h"
 #include "mars/app/app.h"
 #include <map>
 
@@ -16,6 +18,7 @@ namespace mars {
     namespace stn {
         std::map<int, int> *gTypeMap;
         MessageDB* MessageDB::instance_ = NULL;
+        static uint32_t gs_chatroomid = 100;
         
         MessageDB* MessageDB::Instance() {
             if(instance_ == NULL) {
@@ -51,6 +54,11 @@ namespace mars {
             if ((flag & 0x1) == 0) {
                 return 0;
             }
+            
+            if (msg.conversationType == ConversationType_ChatRoom) {
+                return -1 * (long)atomic_inc32(&gs_chatroomid);
+            }
+
             MessageStatus status = msg.status;
             if (msg.direction == 1 && status == Message_Status_Unread) {
                 if ((flag & 0x2) == 0) {
@@ -157,6 +165,10 @@ namespace mars {
 
         }
         bool MessageDB::DeleteMessage(long messageId) {
+            if (messageId < 0) {
+                return false;
+            }
+            
             DB2 *db = DB2::Instance();
             if (!db->isOpened()) {
                 return false;
@@ -1015,6 +1027,10 @@ namespace mars {
         }
       
       TMessage MessageDB::GetMessage(long messageId) {
+          if (messageId < 0) {
+              return TMessage();
+          }
+          
         DB2 *db = DB2::Instance();
         if (!db->isOpened()) {
           return TMessage();

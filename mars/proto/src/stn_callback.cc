@@ -254,7 +254,9 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                 long id = MessageDB::Instance()->InsertMessage(tmsg);
                 tmsg.messageId = id;
                 
-                MessageDB::Instance()->updateConversationTimestamp(tmsg.conversationType, tmsg.target, tmsg.line, tmsg.timestamp);
+                if(id > 0) {
+                    MessageDB::Instance()->updateConversationTimestamp(tmsg.conversationType, tmsg.target, tmsg.line, tmsg.timestamp);
+                }
             } else {
                 tmsg.messageId = 0;
             }
@@ -278,7 +280,7 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                     }
                     for (std::list<Message>::iterator it = result.messages.begin(); it != result.messages.end(); it++) {
                         TMessage tmsg;
-                        StnCallBack::Instance()->converProtoMessage(*it, tmsg, mPullType != Pull_ChatRoom, curUser);
+                        StnCallBack::Instance()->converProtoMessage(*it, tmsg, true, curUser);
                         messageList.push_back(tmsg);
                         
 //                        #define MESSAGE_CONTENT_TYPE_CREATE_GROUP 104

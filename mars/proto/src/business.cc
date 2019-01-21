@@ -719,13 +719,11 @@ public:
 int (*sendMessage)(TMessage &tmsg, SendMessageCallback *callback, int expireDuration)
 = [](TMessage &tmsg, SendMessageCallback *callback, int expireDuration) {
     tmsg.timestamp = ((int64_t)time(NULL))*1000;
-    long id = 0;
-    if(tmsg.conversationType != ConversationType_ChatRoom) {
-        id = MessageDB::Instance()->InsertMessage(tmsg);
-        if(id > 0) {
+    long id = MessageDB::Instance()->InsertMessage(tmsg);
+    if(id > 0) {
         MessageDB::Instance()->updateConversationTimestamp(tmsg.conversationType, tmsg.target, tmsg.line, tmsg.timestamp);
-        }
     }
+    
     callback->onPrepared(id, tmsg.timestamp);
 
     if(tmsg.content.mediaType > 0 && !tmsg.content.localMediaPath.empty() && tmsg.content.remoteMediaUrl.empty()) {
