@@ -1,5 +1,5 @@
 ## 说明
-野火IM系统有4部分组成，服务器/[iOS](https://github.com/wildfirechat/ios-chat)客户端/[Android](https://github.com/wildfirechat/android-chat)客户端/协议栈库。其中iso和android都依赖于协议栈部分。此为协议栈工程。
+本系统有4部分组成，[服务器](https://github.com/wildfirechat/server)/[iOS客户端](https://github.com/wildfirechat/ios-chat)/[Android客户端](https://github.com/wildfirechat/android-chat)/[协议栈库](https://github.com/wildfirechat/proto)。其中iOS和Android都依赖于协议栈库。此为协议栈工程。
 
 
 ### iOS的编译
