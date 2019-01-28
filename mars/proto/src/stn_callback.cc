@@ -211,6 +211,19 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
             tmsg.conversationType = (int)pmsg.conversation.type;
             tmsg.line = (int)pmsg.conversation.line;
             
+            tmsg.messageUid = pmsg.messageId;
+            tmsg.messageId = 0;
+            tmsg.timestamp = pmsg.serverTimestamp;
+            tmsg.content.type = pmsg.content.type;
+            tmsg.content.searchableContent = pmsg.content.searchableContent;
+            tmsg.content.pushContent = pmsg.content.pushContent;
+            tmsg.content.content = pmsg.content.content;
+            tmsg.content.binaryContent = pmsg.content.data;
+            tmsg.content.mediaType = pmsg.content.mediaType;
+            tmsg.content.remoteMediaUrl = pmsg.content.remoteMediaUrl;
+            tmsg.content.mentionedType = pmsg.content.mentionedType;
+            tmsg.content.mentionedTargets = pmsg.content.mentionedTargets;
+            
             tmsg.from = pmsg.fromUser;
             tmsg.to = pmsg.toUser;
             if (tmsg.from == curUser) {
@@ -236,19 +249,6 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                     }
                 }
             }
-            
-            tmsg.messageUid = pmsg.messageId;
-            tmsg.messageId = 0;
-            tmsg.timestamp = pmsg.serverTimestamp;
-            tmsg.content.type = pmsg.content.type;
-            tmsg.content.searchableContent = pmsg.content.searchableContent;
-            tmsg.content.pushContent = pmsg.content.pushContent;
-            tmsg.content.content = pmsg.content.content;
-            tmsg.content.binaryContent = pmsg.content.data;
-            tmsg.content.mediaType = pmsg.content.mediaType;
-            tmsg.content.remoteMediaUrl = pmsg.content.remoteMediaUrl;
-            tmsg.content.mentionedType = pmsg.content.mentionedType;
-            tmsg.content.mentionedTargets = pmsg.content.mentionedTargets;
             
             if (saveToDb) {
                 long id = MessageDB::Instance()->InsertMessage(tmsg);

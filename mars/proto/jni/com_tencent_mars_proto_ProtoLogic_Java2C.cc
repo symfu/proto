@@ -1162,7 +1162,7 @@ void convertMessageContent(JNIEnv *env, jobject content, mars::stn::TMessageCont
       //[mentionedType addObject:[NSString stringWithUTF8String:(*it).c_str()]];
     //}
     field = env->GetFieldID(jcontent, "mentionedTargets", "[Ljava/lang/String;");
-    jobjectArray jstringArray = (jobjectArray)env->GetObjectField(content, field);
+    jobjectArray jstringArray = static_cast<jobjectArray>(env->GetObjectField(content, field));
     tcontent.mentionedTargets = jarrayToStringList(env, jstringArray);
     env->DeleteLocalRef(jstringArray);
 }

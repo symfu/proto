@@ -32,7 +32,7 @@ namespace mars{
             mentionedType = getInt(msg, keyMentionedType, 0);
             int size = getSize(msg, keyMentionedTargets);
             for (int i = 0; i < size; i++) {
-                mentionedTargets.insert(mentionedTargets.end(), getString(msg, keyRemoteMediaUrl, i));
+                mentionedTargets.insert(mentionedTargets.end(), getString(msg, keyMentionedTargets, i));
             }
             
             if(destroy)
