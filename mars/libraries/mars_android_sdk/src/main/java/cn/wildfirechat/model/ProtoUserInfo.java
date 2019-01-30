@@ -17,6 +17,7 @@ public class ProtoUserInfo {
     private String social;
     private String extra;
     private long updateDt;
+    private int type;
 
     public String getUid() {
         return uid;
@@ -112,5 +113,13 @@ public class ProtoUserInfo {
 
     public void setGender(int gender) {
         this.gender = gender;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

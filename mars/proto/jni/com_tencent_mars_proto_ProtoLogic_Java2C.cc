@@ -308,6 +308,8 @@ jobject convertProtoUserInfo(JNIEnv *env, const mars::stn::TUserInfo &tUserInfo)
 //    userInfo.updateDt = tui.updateDt;
     SetObjectValue_LongLong(env, obj, juserInfo, "setUpdateDt", tUserInfo.updateDt);
 
+    SetObjectValue_Int(env, obj, juserInfo, "setType", tUserInfo.type);
+
     return obj;
 }
 
