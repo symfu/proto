@@ -2,7 +2,7 @@
 本工程为野火IM客户端协议栈，为所有野火IM原生平台（Android、iOS，Windows，OSX）提供协议处理功能。野火IM作为一个通用的即时通讯SDK，可以集成到各种应用中。详情可以阅读[docs](http://docs.wildfirechat.cn).
 
 #### 编译环境
-mars依赖于特定的环境，请参考[mars](https://github.com/Tencent/mars)，保证与mars相同的编译环境。
+协议栈是基于mars二次开发的，依赖于特定的环境，请参考[mars](https://github.com/Tencent/mars)，保证与mars相同的编译环境。
 
 ### iOS的编译
 
