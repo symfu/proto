@@ -1,6 +1,8 @@
 ## 说明
-本系统有4部分组成，[服务器](https://github.com/wildfirechat/server)/[iOS客户端](https://github.com/wildfirechat/ios-chat)/[Android客户端](https://github.com/wildfirechat/android-chat)/[协议栈库](https://github.com/wildfirechat/proto)。其中iOS和Android都依赖于协议栈库。此为协议栈工程。
+本工程为野火IM客户端协议栈，为所有野火IM原生平台（Android、iOS，Windows，OSX）提供协议处理功能。野火IM作为一个通用的即时通讯SDK，可以集成到各种应用中。详情可以阅读[docs](http://docs.wildfirechat.cn).
 
+#### 编译环境
+mars依赖于特定的环境，请参考[mars](https://github.com/Tencent/mars)，保证与mars相同的编译环境。
 
 ### iOS的编译
 
