@@ -37,11 +37,11 @@ int aes_cbc_encrypt_time_check(const unsigned char* pKey, unsigned int uiKeyLen
     ret = AES_set_encrypt_key(keyBuf, AES_KEY_BITSET_LEN, &aesKey);
     if(ret != 0) return -2;
     
-    //2018.1.1 0:0:0 以来的秒数
-    unsigned int timestamp = (unsigned int)time(NULL) - 1514736000;
+    //second from 2018.1.1 0:0:0
+	unsigned int timestamp = (unsigned int)time(NULL) - 1514736000;
     
-    //2018.1.1 0:0:0 以来的小时数
-    unsigned int hours = timestamp / 3600;
+    //hours from 2018.1.1 0:0:0
+	unsigned int hours = timestamp / 3600;
     
     uiInputLen += 4;
     
@@ -49,11 +49,11 @@ int aes_cbc_encrypt_time_check(const unsigned char* pKey, unsigned int uiKeyLen
     uiPaddingLen = AES_KEY_LEN - (uiInputLen % AES_KEY_LEN);
     uiTotalLen = uiInputLen + uiPaddingLen;
     
-    unsigned char pData[uiTotalLen];
+    unsigned char *pData = (unsigned char*)malloc(sizeof(unsigned char) * uiTotalLen);
     unsigned short int si = 1;
-    if ((si & 0xFF) == 1) { //小端
+    if ((si & 0xFF) == 1) { //small end
         memcpy(pData, &hours, 4);
-    } else { //大端
+    } else { //big end
         unsigned char byte0 = (hours & 0xFF);
         pData[0] = byte0;
         
@@ -76,7 +76,8 @@ int aes_cbc_encrypt_time_check(const unsigned char* pKey, unsigned int uiKeyLen
     memset(*ppOutput, 0, uiTotalLen);
     
     AES_cbc_encrypt(pData, *ppOutput, uiTotalLen, &aesKey, iv, AES_ENCRYPT);
-    
+    free(pData);
+    pData = NULL;
     return 0;
 }
 

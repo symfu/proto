@@ -459,6 +459,26 @@ class GGCB : public mars::stn::GetGroupInfoCallback {
   }
 };
 
+
+DEFINE_FIND_STATIC_METHOD(KProto2Java_onGroupMembersUpdated, KProto2Java, "onGroupMembersUpdated", "([Ljava/lang/String;)V")
+class GGMCB : public mars::stn::GetGroupMembersCallback {
+  public:
+
+  void onSuccess(const std::string &groupId, const std::list<mars::stn::TGroupMember> &groupMemberList) {
+    if (g_objProtoLogic) {
+        VarCache* cache_instance = VarCache::Singleton();
+        ScopeJEnv scope_jenv(cache_instance->GetJvm());
+        JNIEnv *env = scope_jenv.GetEnv();
+
+        jstring jstr = cstring2jstring(env, groupId.c_str());
+        JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onGroupMembersUpdated, jstr);
+        env->DeleteLocalRef(jstr);
+    }
+  }
+  void onFalure(int errorCode) {
+  }
+};
+
 jobject convertProtoChannelInfo(JNIEnv *env, const mars::stn::TChannelInfo &tChannelInfo) {
     jclass jchannelInfo = (jclass)g_objChannelInfo;
     jobject obj = env->AllocObject(jchannelInfo);
@@ -615,6 +635,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_setAuthInfo
 
     mars::stn::setRefreshUserInfoCallback(new GUCB());
     mars::stn::setRefreshGroupInfoCallback(new GGCB());
+    mars::stn::setRefreshGroupMemberCallback(new GGMCB());
     mars::stn::setRefreshFriendListCallback(new GFLCB());
     mars::stn::setRefreshChannelInfoCallback(new GCHCB());
     mars::stn::setRefreshFriendRequestCallback(new GFRCB());
@@ -817,11 +838,11 @@ public:
     }
 };
 
-class IMSendMessageCallback : public mars::stn::SendMessageCallback {
+class IMSendMessageCallback : public mars::stn::SendMsgCallback {
 private:
     jobject mObj;
 public:
-    IMSendMessageCallback(jobject obj) : mars::stn::SendMessageCallback(), mObj(obj) {};
+    IMSendMessageCallback(jobject obj) : mars::stn::SendMsgCallback(), mObj(obj) {};
      void onSuccess(long long messageUid, long long timestamp) {
         VarCache* cache_instance = VarCache::Singleton();
         ScopeJEnv scope_jenv(cache_instance->GetJvm());
@@ -1211,7 +1232,7 @@ jobject convertProtoUnreadCount(JNIEnv *env, const mars::stn::TUnreadCount &tCou
     jclass junread = (jclass)g_objUnreadCount;
     jobject unread = env->AllocObject(junread);
     SetObjectValue_Int(env, unread, junread, "setUnread", tCount.unread);
-    SetObjectValue_Int(env, unread, junread, "setUnreadMention", tCount.unreadMetion);
+    SetObjectValue_Int(env, unread, junread, "setUnreadMention", tCount.unreadMention);
     SetObjectValue_Int(env, unread, junread, "setUnreadMentionAll", tCount.unreadMentionAll);
     return unread;
 }
@@ -1241,7 +1262,7 @@ jobject convertProtoConversation(JNIEnv *env, const mars::stn::TConversation &tC
     //info.timestamp = tConv.timestamp;
     SetObjectValue_LongLong(env, obj, jconv, "setTimestamp", tConv.timestamp);
 
-    //info.unreadCount = [WFCCUnreadCount countOf:tConv.unreadCount.unread mention:tConv.unreadCount.unreadMetion mentionAll:tConv.unreadCount.unreadMentionAll];
+    //info.unreadCount = [WFCCUnreadCount countOf:tConv.unreadCount.unread mention:tConv.unreadCount.unreadMention mentionAll:tConv.unreadCount.unreadMentionAll];
     jobject unread = convertProtoUnreadCount(env, tConv.unreadCount);
     SetObjectValue_Object(env, obj, jconv, "setUnreadCount", unread, "(Lcn/wildfirechat/model/ProtoUnreadCount;)V");
     env->DeleteLocalRef(unread);
@@ -1325,7 +1346,7 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessages
 //public static native ProtoMessage getMessage(long messageId);
 JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessage
 		(JNIEnv *_env, jclass clz, jlong messageId) {
-    mars::stn::TMessage message = mars::stn::MessageDB::Instance()->GetMessage((long)messageId);
+    mars::stn::TMessage message = mars::stn::MessageDB::Instance()->GetMessageById((long)messageId);
     return convertProtoMessage(_env, &message);
 }
 //public static native ProtoMessage getMessageByUid(long messageUid);

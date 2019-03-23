@@ -44,7 +44,7 @@ namespace mars {
 class StnCallBack : public Callback,  PullingMessageCallback {
     
 private:
-    StnCallBack() : m_connectionStatus(kConnectionStatusLogout), m_connectionStatusCB(NULL), m_receiveMessageCB(NULL), m_getUserInfoCB(NULL), m_getMyFriendsCB(NULL), m_getFriendRequestCB(NULL), m_getSettingCB(NULL), m_getGroupInfoCB(NULL), m_getChannelInfoCB(NULL), deltaTime(0), nwDelay(0), mAuthed(false), pullRetryCount(0), isPullingMsg(false), isPullingChatroomMsg(false), isPullingSetting(false), currentHead(0), currentChatroomHead(0), settingHead(0) {};
+    StnCallBack() : m_connectionStatus(kConnectionStatusLogout), m_connectionStatusCB(NULL), m_receiveMessageCB(NULL), m_getUserInfoCB(NULL), m_getMyFriendsCB(NULL), m_getFriendRequestCB(NULL), m_getSettingCB(NULL), m_getGroupInfoCB(NULL), m_getGroupMembersCB(NULL), m_getChannelInfoCB(NULL), deltaTime(0), nwDelay(0), mAuthed(false), pullRetryCount(0), isPullingMsg(false), isPullingChatroomMsg(false), isPullingSetting(false), currentHead(0), currentChatroomHead(0), settingHead(0) {};
     virtual ~StnCallBack() {}
     StnCallBack(StnCallBack&);
     StnCallBack& operator = (StnCallBack&);
@@ -56,6 +56,7 @@ private:
     GetFriendRequestCallback *m_getFriendRequestCB;
     GetSettingCallback *m_getSettingCB;
     GetGroupInfoCallback *m_getGroupInfoCB;
+    GetGroupMembersCallback *m_getGroupMembersCB;
     GetChannelInfoCallback *m_getChannelInfoCB;
     void converProtoMessage(const Message &pmsg, TMessage &tmsg, bool saveToDb, const std::string &curUser);
   
@@ -69,6 +70,7 @@ public:
     void setGetFriendRequestCallback(GetFriendRequestCallback *callback);
   void setGetSettingCallback(GetSettingCallback *callback);
     void setGetGroupInfoCallback(GetGroupInfoCallback *callback);
+    void setGetGroupMemberCallback(GetGroupMembersCallback *callback);
     void setGetChannelInfoCallback(GetChannelInfoCallback *callback);
   ConnectionStatus getConnectionStatus() {
     return m_connectionStatus;
@@ -86,12 +88,14 @@ public:
     //底层获取task要发送的数据
     virtual bool Req2Buf(uint32_t _taskid, void* const _user_context, AutoBuffer& _outbuffer, AutoBuffer& _extend, int& _error_code, const int _channel_select);
     //底层回包返回给上层解析
-    virtual int Buf2Resp(uint32_t _taskid, void* const _user_context, const AutoBuffer& _inbuffer, const AutoBuffer& _extend, int& _error_code, const int _channel_select);
-    //任务执行结束
+    //virtual int Buf2Resp(uint32_t _taskid, void* const _user_context, const AutoBuffer& _inbuffer, const AutoBuffer& _extend, int& _error_code, const int _channel_select);
+	virtual int Buf2Resp(uint32_t _taskid, void* const _user_context, const AutoBuffer& _inbuffer, const AutoBuffer& _extend, int& _error_code, const int _channel_select);
+	//任务执行结束
     virtual int  OnTaskEnd(uint32_t _taskid, void* const _user_context, int _error_type, int _error_code);
 
     //上报网络连接状态
-    virtual void ReportConnectStatus(int _status, int longlink_status);
+    //virtual void ReportConnectStatus(int _status, int longlink_status);
+	virtual void ReportConnectStatus(int _status, int longlink_status);
     //长连信令校验 ECHECK_NOW, ECHECK_NEVER = 1, ECHECK_NEXT = 2
     virtual int  GetLonglinkIdentifyCheckBuffer(AutoBuffer& _identify_buffer, AutoBuffer& _buffer_hash, int32_t& _cmdid);
     //长连信令校验回包
@@ -113,6 +117,7 @@ public:
     friend class GetUserSettingPublishCallback;
     friend class PullingMessagePublishCallback;
     friend class TGetChannelInfoCallback;
+    friend class GetGroupMembersPublishCallback;
 private:
     static StnCallBack* instance_;
     void PullMessage(int64_t head, int type, bool retry, bool refreshSetting);

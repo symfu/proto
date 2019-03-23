@@ -6,13 +6,14 @@
 //  Copyright © 2017年 WildFireChat. All rights reserved.
 //
 
-#include "MessageDB.h"
-#include "DB2.h"
-#include "proto/stn_callback.h"
-#include "Proto/conversation.h"
+#include "mars/proto/MessageDB.h"
+#include "mars/proto/src/DB2.h"
+#include "mars/proto/stn_callback.h"
+#include "mars/proto/src/Proto/conversation.h"
 #include "mars/comm/thread/atomic_oper.h"
 #include "mars/app/app.h"
 #include <map>
+#include <time.h>
 
 namespace mars {
     namespace stn {
@@ -60,7 +61,7 @@ namespace mars {
             }
 
             MessageStatus status = msg.status;
-            if (msg.direction == 1 && status == Message_Status_Unread) {
+            if (msg.direction == 1 && (status == Message_Status_Unread || status == Message_Status_Mentioned || status == Message_Status_AllMentioned)) {
                 if ((flag & 0x2) == 0) {
                     status = Message_Status_Readed;
                 }
@@ -91,10 +92,16 @@ namespace mars {
             columns.push_back("_uid");
             columns.push_back("_timestamp");
 
-            RecyclableStatement statementHandle = db->GetInsertStatement(MESSAGE_TABLE_NAME, columns);
+            std::string sql = db->GetInsertSql(MESSAGE_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(MESSAGE_TABLE_NAME, {"_conv_type","_conv_target","_conv_line","_from","_to","_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path","_direction","_status","_uid","_timestamp"});
+            std::string sql = db->GetInsertSql(MESSAGE_TABLE_NAME, {"_conv_type","_conv_target","_conv_line","_from","_to","_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path","_direction","_status","_uid","_timestamp"});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return -1;
+            }
+            
             int index = 1;
             db->Bind(statementHandle, msg.conversationType, index++);
             db->Bind(statementHandle, msg.target, index++);
@@ -139,10 +146,16 @@ namespace mars {
             columns.push_back("_cont_media_type");
             columns.push_back("_cont_remote_media_url");
             columns.push_back("_cont_local_media_path");
-            RecyclableStatement statementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_id=?");
 #else
-            RecyclableStatement statementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path"}, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path"}, "_id=?");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
             
             db->Bind(statementHandle, content.type, 1);
             db->Bind(statementHandle, content.searchableContent, 2);
@@ -174,7 +187,11 @@ namespace mars {
                 return false;
             }
 
-            RecyclableStatement statementHandle = db->GetDeleteStatement(MESSAGE_TABLE_NAME, "_id=?");
+            std::string sql = db->GetDeleteSql(MESSAGE_TABLE_NAME, "_id=?");
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            
             statementHandle.bind(1, (int)messageId);
             
             if (db->ExecuteDelete(statementHandle) > 0) {
@@ -200,10 +217,16 @@ namespace mars {
             columns.push_back("_cont_media_type");
             columns.push_back("_cont_remote_media_url");
             columns.push_back("_cont_local_media_path");
-            RecyclableStatement statementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_uid=?");
 #else
-            RecyclableStatement statementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path"}, "_uid=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path"}, "_uid=?");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return -1;
+            }
             
             db->Bind(statementHandle, content.type, 1);
             db->Bind(statementHandle, content.searchableContent, 2);
@@ -230,7 +253,10 @@ namespace mars {
                 return false;
             }
 
-            RecyclableStatement statementHandle = db->GetDeleteStatement(MESSAGE_TABLE_NAME, "_uid=?");
+            std::string sql = db->GetDeleteSql(MESSAGE_TABLE_NAME, "_uid=?");
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            
             statementHandle.bind(1, messageUid);
             if (db->ExecuteDelete(statementHandle) > 0) {
                 return true;
@@ -247,10 +273,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_head");
-            RecyclableStatement statementHandle = db->GetUpdateStatement(TIMELINE_TABLE_NAME, columns);
+            std::string sql = db->GetUpdateSql(TIMELINE_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetUpdateStatement(TIMELINE_TABLE_NAME, {"_head"});
+            std::string sql = db->GetUpdateSql(TIMELINE_TABLE_NAME, {"_head"});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, timeline, 1);
             return db->ExecuteUpdate(statementHandle) > 0;
         }
@@ -264,10 +296,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_head");
-            RecyclableStatement statementHandle = db->GetSelectStatement(TIMELINE_TABLE_NAME, columns);
+            std::string sql = db->GetSelectSql(TIMELINE_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(TIMELINE_TABLE_NAME, {"_head"});
+            std::string sql = db->GetSelectSql(TIMELINE_TABLE_NAME, {"_head"});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0;
+            }
+            
             if (statementHandle.executeSelect()) {
                 int64_t head = db->getBigIntValue(statementHandle, 0);
                 return head;
@@ -285,10 +323,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("max(_update_dt)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, columns);
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, {"max(_update_dt)"});
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, {"max(_update_dt)"});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0;
+            }
+            
             if (statementHandle.executeSelect()) {
                 int64_t head = db->getBigIntValue(statementHandle, 0);
                 return head;
@@ -358,7 +402,10 @@ namespace mars {
                 }
                 
                 if (it->value.empty()) {
-                    RecyclableStatement statementHandle = db->GetDeleteStatement(USER_SETTING_TABLE_NAME,"_scope=? and _key=?");
+                    std::string sql = db->GetDeleteSql(USER_SETTING_TABLE_NAME,"_scope=? and _key=?");
+                    int error = 0;
+                    RecyclableStatement statementHandle(db, sql, error);
+                    
                     db->Bind(statementHandle, it->scope, 1);
                     db->Bind(statementHandle, it->key, 1);
                     
@@ -370,10 +417,16 @@ namespace mars {
                     columns.push_back("_key");
                     columns.push_back("_value");
                     columns.push_back("_update_dt");
-                    RecyclableStatement statementHandle = db->GetInsertStatement(USER_SETTING_TABLE_NAME, columns, true);
+                    std::string sql = db->GetInsertSql(USER_SETTING_TABLE_NAME, columns, true);
 #else
-                    RecyclableStatement statementHandle = db->GetInsertStatement(USER_SETTING_TABLE_NAME, {"_scope",  "_key", "_value", "_update_dt"}, true);
+                    std::string sql = db->GetInsertSql(USER_SETTING_TABLE_NAME, {"_scope",  "_key", "_value", "_update_dt"}, true);
 #endif
+                    int error = 0;
+                    RecyclableStatement statementHandle(db, sql, error);
+                    if (error != 0) {
+                        return false;
+                    }
+                    
                     db->Bind(statementHandle, it->scope, 1);
                     db->Bind(statementHandle, it->key, 2);
                     db->Bind(statementHandle, it->value, 3);
@@ -393,10 +446,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_value");
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, columns, "_scope=? and _key=?");
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, columns, "_scope=? and _key=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, {"_value"}, "_scope=? and _key=?");
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, {"_value"}, "_scope=? and _key=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return "";
+            }
+            
             db->Bind(statementHandle, scope, 1);
             db->Bind(statementHandle, key, 2);
 
@@ -417,10 +476,16 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back("_key");
             columns.push_back("_value");
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, columns, "_scope=?");
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, columns, "_scope=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_SETTING_TABLE_NAME, {"_key, _value"}, "_scope=?");
+            std::string sql = db->GetSelectSql(USER_SETTING_TABLE_NAME, {"_key, _value"}, "_scope=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::map<std::string, std::string>();
+            }
+            
             db->Bind(statementHandle, scope, 1);
             
             std::map<std::string, std::string> out;
@@ -440,10 +505,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_timestamp");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, {"_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, timestamp, 1);
             db->Bind(updateStatementHandle, conversationType, 2);
             db->Bind(updateStatementHandle, target, 3);
@@ -461,10 +532,16 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetInsertStatement(CONVERSATION_TABLE_NAME, columns, true);
+            sql = db->GetInsertSql(CONVERSATION_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_timestamp"}, true);
+            sql = db->GetInsertSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_timestamp"}, true);
 #endif
+            error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
             db->Bind(statementHandle, line, 3);
@@ -480,10 +557,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_istop");
-            RecyclableStatement statementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement statementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, {"_istop"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_istop"}, "_conv_type=? and _conv_target=? and _conv_line=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, istop, 1);
             db->Bind(statementHandle, conversationType, 2);
             db->Bind(statementHandle, target, 3);
@@ -500,10 +583,16 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_istop");
-            RecyclableStatement statementHandle2 = db->GetInsertStatement(CONVERSATION_TABLE_NAME, columns, true);
+            std::string sql2 = db->GetInsertSql(CONVERSATION_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle2 = db->GetInsertStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_istop"}, true);
+            std::string sql2 = db->GetInsertSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_istop"}, true);
 #endif
+            error = 0;
+            RecyclableStatement statementHandle2(db, sql2, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle2, conversationType, 1);
             db->Bind(statementHandle2, target, 2);
             db->Bind(statementHandle2, line, 3);
@@ -518,10 +607,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_issilent");
-            RecyclableStatement statementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement statementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, {"_issilent"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_issilent"}, "_conv_type=? and _conv_target=? and _conv_line=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, issilent, 1);
             db->Bind(statementHandle, conversationType, 2);
             db->Bind(statementHandle, target, 3);
@@ -538,10 +633,16 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_issilent");
-            RecyclableStatement statementHandle2 = db->GetInsertStatement(CONVERSATION_TABLE_NAME, columns, true);
+            std::string sql2 = db->GetInsertSql(CONVERSATION_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle2 = db->GetInsertStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_issilent"}, true);
+            std::string sql2 = db->GetInsertSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_issilent"}, true);
 #endif
+            error = 0;
+            RecyclableStatement statementHandle2(db, sql2, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle2, conversationType, 1);
             db->Bind(statementHandle2, target, 2);
             db->Bind(statementHandle2, line, 3);
@@ -558,10 +659,16 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back("_draft");
             columns.push_back("_timestamp");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, {"_draft", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, draft, 1);
             db->Bind(updateStatementHandle, ((int64_t)time(NULL))*1000, 2);
             db->Bind(updateStatementHandle, conversationType, 3);
@@ -579,10 +686,16 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_draft");
-            RecyclableStatement statementHandle = db->GetInsertStatement(CONVERSATION_TABLE_NAME, columns, true);
+            sql = db->GetInsertSql(CONVERSATION_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_draft"}, true);
+            sql = db->GetInsertSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_draft"}, true);
 #endif
+            error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
             db->Bind(statementHandle, line, 3);
@@ -651,10 +764,15 @@ namespace mars {
             columns.push_back("_istop");
             columns.push_back("_issilent");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, columns, where, orderBy, 500);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, columns, where, orderBy, 500);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_draft",  "_istop", "_issilent", "_timestamp"}, where, orderBy, 500);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_draft",  "_istop", "_issilent", "_timestamp"}, where, orderBy, 500);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TConversation>();
+            }
             
             std::list<TConversation> convs;
           while(statementHandle.executeSelect()) {
@@ -693,10 +811,16 @@ namespace mars {
             columns.push_back("_istop");
             columns.push_back("_issilent");
             columns.push_back("_timestamp");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(CONVERSATION_TABLE_NAME, {"_draft", "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, "", 1);
             db->Bind(updateStatementHandle, 0, 2);
             db->Bind(updateStatementHandle, 0, 3);
@@ -712,7 +836,7 @@ namespace mars {
             
 //
 //
-//            RecyclableStatement statementHandle = db->GetDeleteStatement(CONVERSATION_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
+//            std::string sql = db->GetDeleteSql(CONVERSATION_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
 //            db->Bind(statementHandle, conversationType, 1);
 //            db->Bind(statementHandle, target, 2);
 //            db->Bind(statementHandle, line, 3);
@@ -738,7 +862,10 @@ namespace mars {
                 return false;
             }
             
-            RecyclableStatement statementHandle =  db->GetDeleteStatement(MESSAGE_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetDeleteSql(MESSAGE_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
             db->Bind(statementHandle, line, 3);
@@ -759,10 +886,16 @@ namespace mars {
             columns.push_back("_istop");
             columns.push_back("_issilent");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, {"_draft",  "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?"/* and _timestamp > 0"*/);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, {"_draft",  "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?"/* and _timestamp > 0"*/);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return conv;
+            }
+            
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
             db->Bind(statementHandle, line, 3);
@@ -795,10 +928,16 @@ namespace mars {
             columns.push_back("count(*)");
             columns.push_back("sum(_status=?)");
             columns.push_back("sum(_status=?)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and _status=?");
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and _status=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME, {"count(*), sum(_status=?), sum(_status=?)"}, "_conv_type=? and _conv_target=? and _conv_line=? and _status in (?, ?, ?)");
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, {"count(*), sum(_status=?), sum(_status=?)"}, "_conv_type=? and _conv_target=? and _conv_line=? and _status in (?, ?, ?)");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return TUnreadCount();
+            }
+            
             int index = 1;
             db->Bind(statementHandle, Message_Status_Mentioned, index++);
             db->Bind(statementHandle, Message_Status_AllMentioned, index++);
@@ -815,7 +954,7 @@ namespace mars {
                 int unreadMetionAllCount = db->getIntValue(statementHandle, 2);
                 TUnreadCount count;
                 count.unread = unreadCount;
-                count.unreadMetion = unreadMetionCount;
+                count.unreadMention = unreadMetionCount;
                 count.unreadMentionAll = unreadMetionAllCount;
                 return count;
             }
@@ -865,10 +1004,15 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_issilent");
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, columns, where, orderBy, 500);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, columns, where, orderBy, 500);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_issilent"}, where, orderBy, 500);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, {"_conv_type", "_conv_target", "_conv_line", "_issilent"}, where, orderBy, 500);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return TUnreadCount();
+            }
             
             TUnreadCount unreadCount;
             while(statementHandle.executeSelect()) {
@@ -880,7 +1024,7 @@ namespace mars {
                 if (!isSilent) {
                     TUnreadCount tcount = GetUnreadCount(conversationType, target, line);
                     unreadCount.unread += tcount.unread;
-                    unreadCount.unreadMetion += tcount.unreadMetion;
+                    unreadCount.unreadMention += tcount.unreadMention;
                     unreadCount.unreadMentionAll += tcount.unreadMentionAll;
                 }
                 
@@ -952,10 +1096,10 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                          columns, where, orderBy, count);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                 {
                     "_id",
                     "_conv_type",
@@ -977,6 +1121,12 @@ namespace mars {
                     "_uid",
                     "_timestamp"}, where, orderBy, count);
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TMessage>();
+            }
             
             int index = 1;
             db->Bind(statementHandle, conversationType, index++);
@@ -1026,7 +1176,7 @@ namespace mars {
             return result;
         }
       
-      TMessage MessageDB::GetMessage(long messageId) {
+      TMessage MessageDB::GetMessageById(long messageId) {
           if (messageId < 0) {
               return TMessage();
           }
@@ -1058,10 +1208,10 @@ namespace mars {
         columns.push_back("_status");
         columns.push_back("_uid");
         columns.push_back("_timestamp");
-        RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+        std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      columns, where);
 #else
-        RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+        std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      {
                                                                        "_id",
                                                                        "_conv_type",
@@ -1083,6 +1233,14 @@ namespace mars {
                                                                        "_uid",
                                                                        "_timestamp"}, where);
 #endif
+          
+          
+          int error = 0;
+          RecyclableStatement statementHandle(db, sql, error);
+          if (error != 0) {
+              return TMessage();
+          }
+          
         
         db->Bind(statementHandle, messageId, 1);
         
@@ -1147,10 +1305,10 @@ namespace mars {
         columns.push_back("_status");
         columns.push_back("_uid");
         columns.push_back("_timestamp");
-        RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+        std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      columns, where);
 #else
-        RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+        std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      {
                                                                        "_id",
                                                                        "_conv_type",
@@ -1173,6 +1331,12 @@ namespace mars {
                                                                        "_timestamp"}, where);
 #endif
         
+          int error = 0;
+          RecyclableStatement statementHandle(db, sql, error);
+          if (error != 0) {
+              return TMessage();
+          }
+          
         db->Bind(statementHandle, (int64_t)messageUid, 1);
         
         std::list<TMessage> result;
@@ -1215,10 +1379,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_id=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_status"}, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, "_id=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, status, 1);
             db->Bind(updateStatementHandle, messageId, 2);
             int count = db->ExecuteUpdate(updateStatementHandle);
@@ -1240,10 +1410,16 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back("_uid");
             columns.push_back("_timestamp");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_id=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_uid", "_timestamp"}, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_uid", "_timestamp"}, "_id=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, messageUid, 1);
             db->Bind(updateStatementHandle, sendTime, 2);
             db->Bind(updateStatementHandle, messageId, 3);
@@ -1264,10 +1440,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_cont_remote_media_url");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_id=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_cont_remote_media_url"}, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_remote_media_url"}, "_id=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, remoteMediaUrl, 1);
             db->Bind(updateStatementHandle, messageId, 2);
             int count = db->ExecuteUpdate(updateStatementHandle);
@@ -1287,10 +1469,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_cont_local_media_path");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_id=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_cont_local_media_path"}, "_id=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_local_media_path"}, "_id=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, localMediaPath, 1);
             db->Bind(updateStatementHandle, messageId, 2);
             int count = db->ExecuteUpdate(updateStatementHandle);
@@ -1310,16 +1498,24 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and _status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and _status in (?, ?, ?)");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_status"}, "_conv_type=? and _conv_target=? and _conv_line=? and _status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, "_conv_type=? and _conv_target=? and _conv_line=? and _status in (?, ?, ?)");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             
             db->Bind(updateStatementHandle, Message_Status_Readed, 1);
             db->Bind(updateStatementHandle, conversationType, 2);
             db->Bind(updateStatementHandle, target, 3);
             db->Bind(updateStatementHandle, line, 4);
             db->Bind(updateStatementHandle, Message_Status_Unread, 5);
+            db->Bind(updateStatementHandle, Message_Status_Mentioned, 6);
+            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 7);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -1344,10 +1540,15 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("max(_timestamp)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME, columns, where);
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, columns, where);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME, {"max(_timestamp)"}, where);
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, {"max(_timestamp)"}, where);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0;
+            }
             
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
@@ -1368,17 +1569,25 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and _status=? and _timestamp <= ?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=? and  _timestamp <= ? and _status in (?, ?, ?)");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_status"}, "_conv_type=? and _conv_target=? and _conv_line=? and _status=? and _timestamp <= ?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, "_conv_type=? and _conv_target=? and _conv_line=? and _timestamp <= ? and _status in (?, ?, ?)");
 #endif
+            
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
             
             db->Bind(updateStatementHandle, Message_Status_Readed, 1);
             db->Bind(updateStatementHandle, conversationType, 2);
             db->Bind(updateStatementHandle, target, 3);
             db->Bind(updateStatementHandle, line, 4);
-            db->Bind(updateStatementHandle, Message_Status_Unread, 5);
-            db->Bind(updateStatementHandle, dt, 6);
+            db->Bind(updateStatementHandle, dt, 5);
+            db->Bind(updateStatementHandle, Message_Status_Unread, 6);
+            db->Bind(updateStatementHandle, Message_Status_Mentioned, 7);
+            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 8);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -1396,12 +1605,20 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_status in (?, ?, ?)");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_status"}, "_status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, "_status in (?, ?, ?)");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, Message_Status_Readed, 1);
             db->Bind(updateStatementHandle, Message_Status_Unread, 2);
+            db->Bind(updateStatementHandle, Message_Status_Mentioned, 3);
+            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 4);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -1419,10 +1636,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, columns, "_status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_status=?");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(MESSAGE_TABLE_NAME, {"_status"}, "_status=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, "_status=?");
 #endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(updateStatementHandle, Message_Status_Send_Failure, 1);
             db->Bind(updateStatementHandle, Message_Status_Sending, 2);
             int count = db->ExecuteUpdate(updateStatementHandle);
@@ -1460,10 +1683,10 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                          columns, "_conv_type=? and _conv_target=? and _conv_line=? and _cont_searchable like ?", "_timestamp desc", limit);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                                {
                                                                                    "_id",
                                                                                    "_conv_type",
@@ -1485,6 +1708,12 @@ namespace mars {
                                                                                    "_uid",
                                                                                    "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=? and _cont_searchable like ?", "_timestamp desc", limit);
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TMessage>();
+            }
             
             db->Bind(statementHandle, conversationType, 1);
             db->Bind(statementHandle, target, 2);
@@ -1569,10 +1798,10 @@ namespace mars {
             columns.push_back("_conv_target");
             columns.push_back("_conv_line");
             columns.push_back("_timestamp");
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                          columns, where, "_timestamp desc", limit, 0, " _conv_type, _conv_target, _conv_line");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(MESSAGE_TABLE_NAME,
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                                {
                                                                                    "count(*)",
                                                                                    "_id",
@@ -1582,6 +1811,12 @@ namespace mars {
                                                                                    "_timestamp"
                                                                                }, where, "_timestamp desc", limit, 0, " _conv_type, _conv_target, _conv_line");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TConversationSearchresult>();
+            }
+            
             db->Bind(statementHandle, "%" + keyword + "%", 1);
             std::list<TConversationSearchresult> results;
             
@@ -1594,7 +1829,7 @@ namespace mars {
                 result.marchedCount = count;
                 int messageId = db->getIntValue(statementHandle, 1);
                 if (count == 1) {
-                    result.marchedMessage = GetMessage(messageId);
+                    result.marchedMessage = GetMessageById(messageId);
                 }
                 result.conversationType = db->getIntValue(statementHandle, 2);
                 result.target = db->getStringValue(statementHandle, 3);
@@ -1626,16 +1861,23 @@ namespace mars {
             columnRight.push_back("_social");
             columnRight.push_back("_extra");
             columnRight.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatementEx(FRIEND_TABLE_NAME,
+            std::string sql = db->GetSelectSqlEx(FRIEND_TABLE_NAME,
                                                                          columnLeft,USER_TABLE_NAME, columnRight, "l._friend_uid = r._uid and l._state = 0 and r._display_name like ? ", "", limit);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatementEx(FRIEND_TABLE_NAME,
+            std::string sql = db->GetSelectSqlEx(FRIEND_TABLE_NAME,
                                                                          {
                                                                          },
                                                                           USER_TABLE_NAME,
                                                                            {"_uid",  "_name", "_display_name", "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_update_dt"},
                                                                            "l._friend_uid = r._uid and l._state = 0 and r._display_name like ? ", "", limit);
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TUserInfo>();
+            }
+            
             db->Bind(statementHandle, "%" + keyword + "%", 1);
             std::list<TUserInfo> results;
             
@@ -1675,10 +1917,18 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_TABLE_NAME, columns, "_name like ?", "", limit);
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, columns, "_name like ?", "", limit);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_name like ?", "", limit);
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_name like ?", "", limit);
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TGroupSearchResult>();
+            }
+            
+            
             db->Bind(statementHandle, "%" + keyword + "%", 1);
             std::list<TGroupSearchResult> results;
             
@@ -1700,10 +1950,15 @@ namespace mars {
             std::list<std::string> columnMiddle;
             std::list<std::string> columnRight;
             columnRight.push_back("_uid");
-            RecyclableStatement statementHandle2 = db->GetSelectStatementEx2(GROUP_TABLE_NAME, columns, GROUP_MEMBER_TABLE_NAME, columnMiddle, USER_TABLE_NAME, columnRight, "l._uid = m._gid and m._mid = r._uid and r._name like ?", "", limit);
+            sql = db->GetSelectSqlEx2(GROUP_TABLE_NAME, columns, GROUP_MEMBER_TABLE_NAME, columnMiddle, USER_TABLE_NAME, columnRight, "l._uid = m._gid and m._mid = r._uid and r._name like ?", "", limit);
 #else
-            RecyclableStatement statementHandle2 = db->GetSelectStatementEx2(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, GROUP_MEMBER_TABLE_NAME, {}, USER_TABLE_NAME, {"_uid"}, "l._uid = m._gid and m._mid = r._uid and r._name like ?", "", limit);
+            sql = db->GetSelectSqlEx2(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, GROUP_MEMBER_TABLE_NAME, {}, USER_TABLE_NAME, {"_uid"}, "l._uid = m._gid and m._mid = r._uid and r._name like ?", "", limit);
 #endif
+            error = 0;
+            RecyclableStatement statementHandle2(db, sql, error);
+            if (error != 0) {
+                return std::list<TGroupSearchResult>();
+            }
             
             db->Bind(statementHandle2, "%" + keyword + "%", 1);
             
@@ -1795,10 +2050,17 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, columns, "_uid=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_TABLE_NAME, {"_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_uid=?");
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_uid=?");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return gi;
+            }
+            
             db->Bind(statementHandle, groupId, 1);
             gi.target = groupId;
             
@@ -1840,10 +2102,17 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetInsertStatement(GROUP_TABLE_NAME, columns, true);
+            std::string sql = db->GetInsertSql(GROUP_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(GROUP_TABLE_NAME, {"_uid", "_name", "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(GROUP_TABLE_NAME, {"_uid", "_name", "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, true);
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return -1;
+            }
+            
             db->Bind(statementHandle, groupInfo.target, 1);
             db->Bind(statementHandle, groupInfo.name, 2);
             db->Bind(statementHandle, groupInfo.portrait, 3);
@@ -1881,8 +2150,14 @@ namespace mars {
                     return false;
             }
             
-            RecyclableStatement statementHandle = db->GetUpdateStatement(GROUP_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetUpdateSql(GROUP_TABLE_NAME, columns, "_uid=?");
 
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             int index = 1;
             db->Bind(statementHandle, newValue, index++);
             db->Bind(statementHandle, groupId, index++);
@@ -1903,10 +2178,16 @@ namespace mars {
             columns.push_back("_alias");
             columns.push_back("_type");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_MEMBER_TABLE_NAME, columns, "_gid=?");
+            std::string sql = db->GetSelectSql(GROUP_MEMBER_TABLE_NAME, columns, "_gid=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, "_gid=?");
+            std::string sql = db->GetSelectSql(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, "_gid=?");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TGroupMember>();
+            }
             
             db->Bind(statementHandle, groupId, 1);
             
@@ -1944,10 +2225,16 @@ namespace mars {
             columns.push_back("_alias");
             columns.push_back("_type");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_MEMBER_TABLE_NAME, columns, "_gid=? and _mid=?");
+            std::string sql = db->GetSelectSql(GROUP_MEMBER_TABLE_NAME, columns, "_gid=? and _mid=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, "_gid=? and _mid=?");
+            std::string sql = db->GetSelectSql(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, "_gid=? and _mid=?");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return TGroupMember();
+            }
             
             db->Bind(statementHandle, groupId, 1);
             db->Bind(statementHandle, memberId, 2);
@@ -1969,12 +2256,19 @@ namespace mars {
                 return false;
             }
             
-            RecyclableStatement statementHandle = db->GetDeleteStatement(GROUP_TABLE_NAME, "_uid=?");
+            std::string sql = db->GetDeleteSql(GROUP_TABLE_NAME, "_uid=?");
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            
             db->Bind(statementHandle, groupId, 1);
             
             bool result = db->ExecuteDelete(statementHandle) > 0;
             
-            RecyclableStatement statementHandle2 = db->GetDeleteStatement(GROUP_MEMBER_TABLE_NAME, "_gid=?");
+            std::string sql2 = db->GetDeleteSql(GROUP_MEMBER_TABLE_NAME, "_gid=?");
+            
+            
+            error = 0;
+            RecyclableStatement statementHandle2(db, sql2, error);
             db->Bind(statementHandle2, groupId, 1);
             
             result &= db->ExecuteDelete(statementHandle2) > 0;
@@ -1997,10 +2291,16 @@ namespace mars {
                     columns.push_back("_alias");
                     columns.push_back("_type");
                     columns.push_back("_update_dt");
-                    RecyclableStatement statementHandle = db->GetInsertStatement(GROUP_MEMBER_TABLE_NAME, columns, true);
+                    std::string sql = db->GetInsertSql(GROUP_MEMBER_TABLE_NAME, columns, true);
 #else
-                    RecyclableStatement statementHandle = db->GetInsertStatement(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, true);
+                    std::string sql = db->GetInsertSql(GROUP_MEMBER_TABLE_NAME, {"_gid",  "_mid", "_alias", "_type", "_update_dt"}, true);
 #endif
+                    int error = 0;
+                    RecyclableStatement statementHandle(db, sql, error);
+                    if (error != 0) {
+                        return ;
+                    }
+                    
                     db->Bind(statementHandle, it->groupId, 1);
                     db->Bind(statementHandle, it->memberId, 2);
                     db->Bind(statementHandle, it->alias, 3);
@@ -2010,7 +2310,10 @@ namespace mars {
                     long ret = 0;
                     ret = db->ExecuteInsert(statementHandle, &ret);
                 } else {
-                    RecyclableStatement statementHandle = db->GetDeleteStatement(GROUP_MEMBER_TABLE_NAME, "_gid=? and _mid=?");
+                    std::string sql = db->GetDeleteSql(GROUP_MEMBER_TABLE_NAME, "_gid=? and _mid=?");
+                    int error = 0;
+                    RecyclableStatement statementHandle(db, sql, error);
+                    
                     db->Bind(statementHandle, it->groupId, 1);
                     db->Bind(statementHandle, it->memberId, 2);
                     
@@ -2045,10 +2348,16 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_type");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetSelectSql(USER_TABLE_NAME, columns, "_uid=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(USER_TABLE_NAME, {"_uid",  "_name", "_display_name",  "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_type", "_update_dt"}, "_uid=?");
+            std::string sql = db->GetSelectSql(USER_TABLE_NAME, {"_uid",  "_name", "_display_name",  "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_type", "_update_dt"}, "_uid=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return ui;
+            }
+            
             db->Bind(statementHandle, userId, 1);
             std::list<std::pair<std::string, int64_t>> refreshReqList;
             
@@ -2133,7 +2442,13 @@ namespace mars {
                 return 0L;
             }
             
-            RecyclableStatement statementHandle = db->GetUpdateStatement(USER_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetUpdateSql(USER_TABLE_NAME, columns, "_uid=?");
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
             
             int index = 1;
             for (std::list<std::pair<int, std::string>>::const_iterator it = infos.begin(); it != infos.end(); it++) {
@@ -2182,10 +2497,15 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_type");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetInsertStatement(USER_TABLE_NAME, columns, true);
+            std::string sql = db->GetInsertSql(USER_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(USER_TABLE_NAME, {"_uid",  "_name", "_display_name", "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_type", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(USER_TABLE_NAME, {"_uid",  "_name", "_display_name", "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_type", "_update_dt"}, true);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
             db->Bind(statementHandle, userInfo.uid, 1);
             db->Bind(statementHandle, userInfo.name, 2);
             db->Bind(statementHandle, userInfo.displayName, 3);
@@ -2215,10 +2535,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_id");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, columns, "_friend_uid=? and _state=?");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns, "_friend_uid=? and _state=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, {"_id"}, "_friend_uid=? and _state=?");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_id"}, "_friend_uid=? and _state=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, userId, 1);
             db->Bind(statementHandle, 0, 2);
             std::list<std::pair<std::string, int64_t>> refreshReqList;
@@ -2239,10 +2565,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_id");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, columns, "_friend_uid=? and _state=2");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns, "_friend_uid=? and _state=2");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, {"_id"}, "_friend_uid=? and _state=2");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_id"}, "_friend_uid=? and _state=2");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             db->Bind(statementHandle, userId, 1);
             std::list<std::pair<std::string, int64_t>> refreshReqList;
             
@@ -2263,10 +2595,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_friend_uid");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, columns, "_state=?");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns, "_state=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, {"_friend_uid"}, "_state=?");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_friend_uid"}, "_state=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<std::string>();
+            }
+            
             db->Bind(statementHandle, 0, 1);
             std::list<std::string> result;
             
@@ -2290,11 +2628,17 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_friend_uid");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, columns, "_state=2");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns, "_state=2");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, {"_friend_uid"}, "_state=2");
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_friend_uid"}, "_state=2");
 #endif
 
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<std::string>();
+            }
+            
             std::list<std::string> result;            
             while(statementHandle.executeSelect()) {
                 result.push_back(db->getStringValue(statementHandle, 0));
@@ -2316,10 +2660,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("max(_update_dt)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, columns);
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, {"max(_update_dt)"});
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"max(_update_dt)"});
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return INT_MAX;
+            }
             
             
             while(statementHandle.executeSelect()) {
@@ -2341,11 +2691,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("max(_update_dt)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, columns);
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_TABLE_NAME, {"max(_update_dt)"});
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"max(_update_dt)"});
 #endif
             
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return INT_MAX;
+            }
             
             while(statementHandle.executeSelect()) {
                 maxTS = db->getBigIntValue(statementHandle, 0);
@@ -2369,10 +2724,16 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_read_status");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetInsertStatement(FRIEND_REQUEST_TABLE_NAME, columns, true);
+            std::string sql = db->GetInsertSql(FRIEND_REQUEST_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(FRIEND_REQUEST_TABLE_NAME, {"_direction", "_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(FRIEND_REQUEST_TABLE_NAME, {"_direction", "_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, true);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0L;
+            }
+            
             db->Bind(statementHandle, friendRequest.direction, 1);
             db->Bind(statementHandle, friendRequest.target, 2);
             db->Bind(statementHandle, friendRequest.reason, 3);
@@ -2397,10 +2758,16 @@ namespace mars {
             columns.push_back("_friend_uid");
             columns.push_back("_state");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetInsertStatement(FRIEND_TABLE_NAME, columns, true);
+            std::string sql = db->GetInsertSql(FRIEND_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(FRIEND_TABLE_NAME, {"_friend_uid", "_state", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(FRIEND_TABLE_NAME, {"_friend_uid", "_state", "_update_dt"}, true);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0L;
+            }
+            
             db->Bind(statementHandle, friendUid, 1);
             db->Bind(statementHandle, state, 2);
             db->Bind(statementHandle, timestamp, 3);
@@ -2425,10 +2792,16 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_read_status");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=?");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, {"_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, "_direction=?");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, "_direction=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return requests;
+            }
+            
             db->Bind(statementHandle, direction, 1);
             std::list<std::string> result;
             
@@ -2453,12 +2826,18 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("count(*)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status = 0");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status = 0");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, {"count(*)"}, "_direction=1 and _read_status = 0");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"count(*)"}, "_direction=1 and _read_status = 0");
 #endif
             
 
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0;
+            }
+            
             if(statementHandle.executeSelect()) {
                 return db->getIntValue(statementHandle, 0);
             }
@@ -2474,10 +2853,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("max(_update_dt)");
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status = 0");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status = 0");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(FRIEND_REQUEST_TABLE_NAME, {"max(_update_dt)"}, "_direction=1 and _read_status = 0");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"max(_update_dt)"}, "_direction=1 and _read_status = 0");
 #endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0;
+            }
             
             
             if(statementHandle.executeSelect()) {
@@ -2500,10 +2885,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_read_status");
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status=0");
+            std::string sql = db->GetUpdateSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=1 and _read_status=0");
 #else
-            RecyclableStatement updateStatementHandle = db->GetUpdateStatement(FRIEND_REQUEST_TABLE_NAME, {"_read_status"}, "_direction=1 and _read_status=0");
+            std::string sql = db->GetUpdateSql(FRIEND_REQUEST_TABLE_NAME, {"_read_status"}, "_direction=1 and _read_status=0");
 #endif
+            
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return;
+            }
             
             db->Bind(updateStatementHandle, 1, 1);
             int count = db->ExecuteUpdate(updateStatementHandle);
@@ -2532,10 +2923,16 @@ namespace mars {
             columns.push_back("_secret");
             columns.push_back("_callback");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetSelectStatement(CHANNEL_TABLE_NAME, columns, "_uid=?");
+            std::string sql = db->GetSelectSql(CHANNEL_TABLE_NAME, columns, "_uid=?");
 #else
-            RecyclableStatement statementHandle = db->GetSelectStatement(CHANNEL_TABLE_NAME, {"_name",  "_portrait", "_owner", "_status", "_desc", "_extra", "_secret", "_callback", "_update_dt"}, "_uid=?");
+            std::string sql = db->GetSelectSql(CHANNEL_TABLE_NAME, {"_name",  "_portrait", "_owner", "_status", "_desc", "_extra", "_secret", "_callback", "_update_dt"}, "_uid=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return ci;
+            }
+            
             db->Bind(statementHandle, channelId, 1);
             ci.channelId = channelId;
             
@@ -2579,10 +2976,16 @@ namespace mars {
             columns.push_back("_secret");
             columns.push_back("_callback");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = db->GetInsertStatement(CHANNEL_TABLE_NAME, columns, true);
+            std::string sql = db->GetInsertSql(CHANNEL_TABLE_NAME, columns, true);
 #else
-            RecyclableStatement statementHandle = db->GetInsertStatement(CHANNEL_TABLE_NAME, {"_uid",  "_name",  "_portrait", "_owner", "_status", "_desc", "_extra", "_secret", "_callback", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(CHANNEL_TABLE_NAME, {"_uid",  "_name",  "_portrait", "_owner", "_status", "_desc", "_extra", "_secret", "_callback", "_update_dt"}, true);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return 0L;
+            }
+            
             db->Bind(statementHandle, channelInfo.channelId, 1);
             db->Bind(statementHandle, channelInfo.name, 2);
             db->Bind(statementHandle, channelInfo.portrait, 3);

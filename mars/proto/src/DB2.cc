@@ -20,25 +20,40 @@ namespace mars {
             }
             return "";
         }
-
-        
-        RecyclableStatement RecyclableStatement::prepareSQL(sqlite3 *db, std::string sql, int &error) {
-                if (db == NULL) {
-                    error = -1;
-                    return RecyclableStatement(NULL, NULL);
-                }
-                
-                sqlite3_stmt *stmt = NULL;
-                error = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, NULL);
-                if (error != SQLITE_OK)
-                {
-                    xerror2("prepare db error:%d info:%s sql:%s", error, getError(db), sql.c_str());
-                    error = sqlite3_finalize(stmt);
-                    return RecyclableStatement(NULL, NULL);
-                }
-                return RecyclableStatement(db, stmt);
+        RecyclableStatement::RecyclableStatement(DB2 *db2, const std::string &sql, int &error) : m_db(db2->m_db), m_stmt(NULL), m_sql(sql) {
+            if (m_db == NULL) {
+                error = -1;
+                return;
             }
             
+            error = sqlite3_prepare_v2(m_db, m_sql.c_str(), -1, &m_stmt, NULL);
+            if (error != SQLITE_OK)
+            {
+                xerror2("prepare db error:%d info:%s sql:%s", error, getError(m_db), m_sql.c_str());
+                error = sqlite3_finalize(m_stmt);
+                m_stmt = NULL;
+                return ;
+            }
+            error = 0;
+        }
+        
+        RecyclableStatement::RecyclableStatement(sqlite3 *db, const std::string &sql, int &error) : m_db(db), m_stmt(NULL), m_sql(sql) {
+            if (m_db == NULL) {
+                error = -1;
+                return;
+            }
+            
+            error = sqlite3_prepare_v2(m_db, m_sql.c_str(), -1, &m_stmt, NULL);
+            if (error != SQLITE_OK)
+            {
+                xerror2("prepare db error:%d info:%s sql:%s", error, getError(m_db), m_sql.c_str());
+                error = sqlite3_finalize(m_stmt);
+                m_stmt = NULL;
+                return ;
+            }
+            error = 0;
+        }
+
             bool RecyclableStatement::executeSelect() {
                 int error = sqlite3_step(m_stmt);
                 if (error == SQLITE_ROW) {
@@ -252,11 +267,13 @@ namespace mars {
             if (rc != SQLITE_OK)
             {
                 xerror2("config db error %d,ver:%s",rc,sqlite3_libversion());
+                return;
             }
             rc = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, 0);
             if(rc != SQLITE_OK)
             {
                 xerror2("config db error %d,ver:%s",rc,sqlite3_libversion());
+                return;
             }
             
             rc = sqlite3_open_v2(DB2Path.c_str(), &m_db, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX|SQLITE_OPEN_CREATE, NULL);
@@ -264,8 +281,14 @@ namespace mars {
             {
                 xerror2("open error:%s error:%d",getError(m_db), rc);
                 closeDB();
+                return;
             }
-            sqlite3_key(m_db, sec.c_str(), int(sec.size()));
+            rc = sqlite3_key(m_db, sec.c_str(), int(sec.size()));
+            if (rc != SQLITE_OK) {
+                xerror2("open error:%s error:%d",getError(m_db), rc);
+                closeDB();
+                return;
+            }
             opened = true;
         }
         
@@ -281,9 +304,9 @@ namespace mars {
         }
       
 #ifdef __ANDROID__
-      RecyclableStatement DB2::GetSelectStatementEx(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+      std::string DB2::GetSelectSqlEx(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #else
-      RecyclableStatement DB2::GetSelectStatementEx(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+      std::string DB2::GetSelectSqlEx(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #endif
       {
         
@@ -349,15 +372,13 @@ namespace mars {
           sql += str;
         }
         
-        int error = 0;
-        RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-        return statement;
+          return sql;
       }
 
 #ifdef __ANDROID__
-        RecyclableStatement DB2::GetSelectStatementEx2(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+        std::string DB2::GetSelectSqlEx2(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #else
-        RecyclableStatement DB2::GetSelectStatementEx2(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::initializer_list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+        std::string DB2::GetSelectSqlEx2(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::initializer_list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #endif
         {
             
@@ -436,28 +457,25 @@ namespace mars {
                 sql += str;
             }
             
-            int error = 0;
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
-        
+
 #ifdef __ANDROID__
-        RecyclableStatement DB2::GetSelectStatement(const std::string &tableName, const std::list<std::string> &columns, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+        std::string DB2::GetSelectSql(const std::string &tableName, const std::list<std::string> &columns, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #else
-        RecyclableStatement DB2::GetSelectStatement(const std::string &tableName, const std::initializer_list<std::string> &columns, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
+        std::string DB2::GetSelectSql(const std::string &tableName, const std::initializer_list<std::string> &columns, const std::string &where, const std::string &orderBy, int limit, int offset, const std::string &groupBy)
 #endif
         {
-            
             std::string sql = "select ";
 #ifdef __ANDROID__
             for (std::list<std::string>::const_iterator it = columns.begin(); it != columns.end(); ++it)
 #else
-            for (std::initializer_list<std::string>::const_iterator it = columns.begin(); it != columns.end(); ++it)
+                for (std::initializer_list<std::string>::const_iterator it = columns.begin(); it != columns.end(); ++it)
 #endif
-            {
-                sql += *it;
-                sql += ",";
-            }
+                {
+                    sql += *it;
+                    sql += ",";
+                }
             
             sql = sql.substr(0, sql.length() - 1); //remove last ","
             
@@ -492,15 +510,13 @@ namespace mars {
                 sprintf(str, "%d", limit);
                 sql += str;
             }
-            
-            int error = 0;
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
+        
 #ifdef __ANDROID__
-        RecyclableStatement DB2::GetInsertStatement(const std::string &table, const std::list<std::string> &columns, bool replace)
+        std::string DB2::GetInsertSql(const std::string &table, const std::list<std::string> &columns, bool replace)
 #else
-        RecyclableStatement DB2::GetInsertStatement(const std::string &table, const std::initializer_list<std::string> &columns, bool replace)
+        std::string DB2::GetInsertSql(const std::string &table, const std::initializer_list<std::string> &columns, bool replace)
 #endif
         {
             
@@ -541,18 +557,14 @@ namespace mars {
             sql = sql.substr(0, sql.length() - 1); //remove last ","
             sql += ")";
             
-            
-            int error = 0;
-            xdebug2("the sql is %s", sql.c_str());
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
         
         bool DB2::ExecuteInsert(RecyclableStatement &statementHandle, long *rowId) {
             return statementHandle.executeInsert(rowId);
         }
         
-        RecyclableStatement DB2::GetDeleteStatement(const std::string &table, const std::string &where) {
+        std::string DB2::GetDeleteSql(const std::string &table, const std::string &where) {
             
             std::string sql = "delete from ";
             sql += table;
@@ -562,10 +574,7 @@ namespace mars {
                 sql += where;
             }
             
-            
-            int error = 0;
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
         
         int DB2::ExecuteDelete(RecyclableStatement &statementHandle) {
@@ -574,9 +583,9 @@ namespace mars {
             return (int)changes;
         }
 #ifdef __ANDROID__
-        RecyclableStatement DB2::GetUpdateStatement(const std::string &table, const std::list<std::string> &columns, const std::string &where)
+        std::string DB2::GetUpdateSql(const std::string &table, const std::list<std::string> &columns, const std::string &where)
 #else
-        RecyclableStatement DB2::GetUpdateStatement(const std::string &table, const std::initializer_list<std::string> &columns, const std::string &where)
+        std::string DB2::GetUpdateSql(const std::string &table, const std::initializer_list<std::string> &columns, const std::string &where)
 #endif
         {
             
@@ -602,13 +611,11 @@ namespace mars {
                 sql += where;
             }
             
-            int error = 0;
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
         
 #ifndef __ANDROID__
-        RecyclableStatement DB2::GetUpdateStatement(const std::string &table, const std::list<std::string> &columns, const std::string &where)
+        std::string DB2::GetUpdateSql(const std::string &table, const std::list<std::string> &columns, const std::string &where)
         {
             
             std::string sql = "update ";
@@ -629,9 +636,7 @@ namespace mars {
                 sql += where;
             }
             
-            int error = 0;
-            RecyclableStatement statement = RecyclableStatement::prepareSQL(m_db, sql, error);
-            return statement;
+            return sql;
         }
 #endif
         
@@ -688,10 +693,15 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back("name");
             
-            RecyclableStatement statement = GetSelectStatement("sqlite_master", columns, "type='table' AND name=?");
+            std::string sql = GetSelectSql("sqlite_master", columns, "type='table' AND name=?");
 #else
-            RecyclableStatement statement = GetSelectStatement("sqlite_master", {"name"}, "type='table' AND name=?");
+            std::string sql = GetSelectSql("sqlite_master", {"name"}, "type='table' AND name=?");
 #endif
+            int error = 0;
+            RecyclableStatement statement(m_db, sql, error);
+            if (error != 0) {
+                return false;
+            }
             statement.bind(1, tableName);
             return statement.executeSelect();
         }
@@ -706,10 +716,16 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back(VERSION_COLUMN_VERSION);
             
-            RecyclableStatement statementHandle = GetSelectStatement(VERSION_TABLE_NAME, columns, "", "_version desc ", 1);
+            std::string sql = GetSelectSql(VERSION_TABLE_NAME, columns, "", "_version desc ", 1);
 #else
-            RecyclableStatement statementHandle = GetSelectStatement(VERSION_TABLE_NAME, {VERSION_COLUMN_VERSION}, "", "_version desc ", 1);
+            std::string sql = GetSelectSql(VERSION_TABLE_NAME, {VERSION_COLUMN_VERSION}, "", "_version desc ", 1);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(m_db, sql, error);
+            if (error != 0) {
+                return;
+            }
+            
             if (statementHandle.executeSelect()) {
                 int version = getIntValue(statementHandle, 0);
                 if (version == 1) {
@@ -882,10 +898,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_head");
-            RecyclableStatement statementHandleTimeline = GetInsertStatement(TIMELINE_TABLE_NAME, columns);
+            std::string sql = GetInsertSql(TIMELINE_TABLE_NAME, columns);
 #else
-            RecyclableStatement statementHandleTimeline = GetInsertStatement(TIMELINE_TABLE_NAME, {"_head"});
+            std::string sql = GetInsertSql(TIMELINE_TABLE_NAME, {"_head"});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandleTimeline(m_db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             Bind(statementHandleTimeline, 0, 1);
             
             if(!ExecuteInsert(statementHandleTimeline)) {
@@ -935,10 +957,16 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns2;
             columns2.push_back(VERSION_COLUMN_VERSION);
-            RecyclableStatement statementHandle = GetInsertStatement(VERSION_TABLE_NAME, columns2);
+            std::string sql = GetInsertSql(VERSION_TABLE_NAME, columns2);
 #else
-            RecyclableStatement statementHandle = GetInsertStatement(VERSION_TABLE_NAME, {VERSION_COLUMN_VERSION});
+            std::string sql = GetInsertSql(VERSION_TABLE_NAME, {VERSION_COLUMN_VERSION});
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(m_db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             Bind(statementHandle, version, 1);
             if(!ExecuteInsert(statementHandle)) {
                 return false;
@@ -958,10 +986,16 @@ namespace mars {
             columns2.push_back("_long_port");
             columns2.push_back("_short_port");
             columns2.push_back("_update_dt");
-            RecyclableStatement statementHandle = GetInsertStatement("t_user_server", columns2, true);
+            std::string sql = GetInsertSql("t_user_server", columns2, true);
 #else
-            RecyclableStatement statementHandle = GetInsertStatement("t_user_server", {"_uid", "_host", "_long_port", "_short_port", "_update_dt"}, true);
+            std::string sql = GetInsertSql("t_user_server", {"_uid", "_host", "_long_port", "_short_port", "_update_dt"}, true);
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(m_db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
             Bind(statementHandle, userId, 1);
             Bind(statementHandle, userServer.host, 2);
             Bind(statementHandle, userServer.longLinkPort, 3);
@@ -986,10 +1020,16 @@ namespace mars {
             columns.push_back("_long_port");
             columns.push_back("_short_port");
             columns.push_back("_update_dt");
-            RecyclableStatement statementHandle = GetSelectStatement("t_user_server", columns, "_uid=?");
+            std::string sql = GetSelectSql("t_user_server", columns, "_uid=?");
 #else
-            RecyclableStatement statementHandle = GetSelectStatement("t_user_server", {"_host", "_long_port", "_short_port", "_update_dt"}, "_uid=?");
+            std::string sql = GetSelectSql("t_user_server", {"_host", "_long_port", "_short_port", "_update_dt"}, "_uid=?");
 #endif
+            int error = 0;
+            RecyclableStatement statementHandle(m_db, sql, error);
+            if (error != 0) {
+                return UserServerAddress();
+            }
+            
             Bind(statementHandle, userId, 1);
             
             UserServerAddress result;

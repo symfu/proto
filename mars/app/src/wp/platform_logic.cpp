@@ -19,7 +19,7 @@ std::string getUserNameNoLog()
 	return sUsername;
 }
 
-std::string getUserName()
+std::string getAccountUserName()
 {
 	xverbose_function();
 
@@ -34,7 +34,7 @@ std::string getRecentUserName()
 {
 	xverbose_function();
 
-	return getUserName();
+	return getAccountUserName();
 }
 
 unsigned int getClientVersionNoLog()

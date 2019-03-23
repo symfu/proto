@@ -21,9 +21,11 @@ namespace mars {
     namespace stn {
 
         class UserServerAddress;
+        class DB2;
         class RecyclableStatement {
         public:
-            static RecyclableStatement prepareSQL(sqlite3 *db, std::string sql, int &error);
+            RecyclableStatement(sqlite3 *db, const std::string &sql, int &error);
+            RecyclableStatement(DB2 *db2, const std::string &sql, int &error);
             bool executeSelect();
             bool executeInsert(long *rowId);
             bool executeDelete(long *changes);
@@ -46,7 +48,7 @@ namespace mars {
         private:
             sqlite3 *m_db;
             sqlite3_stmt* m_stmt;
-            RecyclableStatement(sqlite3 *db, sqlite3_stmt* stmt) : m_db(db), m_stmt(stmt) {}
+            std::string m_sql;
         };
         
         extern const std::string VERSION_TABLE_NAME;
@@ -80,28 +82,27 @@ namespace mars {
             void Upgrade();
             bool isOpened();
 #ifdef __ANDROID__
-          RecyclableStatement GetSelectStatementEx(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+            std::string GetSelectSqlEx(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
             
-            RecyclableStatement GetSelectStatementEx2(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+            std::string GetSelectSqlEx2(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
             
-            
-            RecyclableStatement GetSelectStatement(const std::string &tableName, const std::list<std::string> &columns, const std::string &where = "", const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
-            RecyclableStatement GetInsertStatement(const std::string &table, const std::list<std::string> &columns, bool replace = false);
-            RecyclableStatement GetUpdateStatement(const std::string &table, const std::list<std::string> &columns, const std::string &where = "");
+            std::string GetSelectSql(const std::string &tableName, const std::list<std::string> &columns, const std::string &where = "", const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+            std::string GetInsertSql(const std::string &table, const std::list<std::string> &columns, bool replace = false);
+            std::string GetUpdateSql(const std::string &table, const std::list<std::string> &columns, const std::string &where = "");
 #else
-          RecyclableStatement GetSelectStatementEx(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+          std::string GetSelectSqlEx(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
             
-            RecyclableStatement GetSelectStatementEx2(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::initializer_list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+            std::string GetSelectSqlEx2(const std::string &tableNameLeft, const std::initializer_list<std::string> &columnsLeft, const std::string &tableNameMiddle, const std::initializer_list<std::string> &columnsMiddle, const std::string &tableNameRight, const std::initializer_list<std::string> &columnsRight, const std::string &where, const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
             
-            RecyclableStatement GetSelectStatement(const std::string &tableName, const std::initializer_list<std::string> &columns, const std::string &where = "", const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
-            RecyclableStatement GetInsertStatement(const std::string &table, const std::initializer_list<std::string> &columns, bool replace = false);
-            RecyclableStatement GetUpdateStatement(const std::string &table, const std::initializer_list<std::string> &columns, const std::string &where = "");
+            std::string GetSelectSql(const std::string &tableName, const std::initializer_list<std::string> &columns, const std::string &where = "", const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
+            std::string GetInsertSql(const std::string &table, const std::initializer_list<std::string> &columns, bool replace = false);
+            std::string GetUpdateSql(const std::string &table, const std::initializer_list<std::string> &columns, const std::string &where = "");
             
-            RecyclableStatement GetUpdateStatement(const std::string &table, const std::list<std::string> &columns, const std::string &where = "");
+            std::string GetUpdateSql(const std::string &table, const std::list<std::string> &columns, const std::string &where = "");
 #endif
             bool ExecuteInsert(RecyclableStatement &statementHandle, long *rowId = NULL);
             
-            RecyclableStatement GetDeleteStatement(const std::string &table, const std::string &where = "");
+            std::string GetDeleteSql(const std::string &table, const std::string &where = "");
             int ExecuteDelete(RecyclableStatement &statementHandle);
             
             int ExecuteUpdate(RecyclableStatement &statementHandle);
@@ -130,6 +131,7 @@ namespace mars {
             void COMMIT();
             bool UpdateUserServerAddress(const std::string &userId, const UserServerAddress &userServer);
             UserServerAddress GetUserServerAddress(const std::string &userId);
+            friend RecyclableStatement;
         private:
             static DB2* instance_;
             

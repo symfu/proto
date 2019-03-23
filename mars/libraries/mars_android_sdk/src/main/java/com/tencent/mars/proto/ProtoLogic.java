@@ -38,6 +38,10 @@ public class ProtoLogic {
         void onGroupInfoUpdated(List<ProtoGroupInfo> updatedGroupInfos);
     }
 
+    public interface IGroupMembersUpdateCallback {
+        void onGroupMembersUpdated(String updatedGroupId);
+    }
+
     public interface IChannelInfoUpdateCallback {
         void onChannelInfoUpdated(List<ProtoChannelInfo> updatedChannelInfos);
     }
@@ -116,6 +120,8 @@ public class ProtoLogic {
     private static IConnectionStatusCallback connectionStatusCallback = null;
     private static IReceiveMessageCallback receiveMessageCallback = null;
     private static IGroupInfoUpdateCallback groupInfoUpdateCallback = null;
+    private static IGroupMembersUpdateCallback groupMembersUpdateCallback = null;
+
     private static IUserInfoUpdateCallback userInfoUpdateCallback = null;
     private static IFriendListUpdateCallback friendListUpdateCallback = null;
     private static IFriendRequestListUpdateCallback friendRequestListUpdateCallback = null;
@@ -192,6 +198,12 @@ public class ProtoLogic {
                 list.add(protoUserInfo);
             }
             groupInfoUpdateCallback.onGroupInfoUpdated(list);
+        }
+    }
+
+    public static void onGroupMembersUpdated(String groupId) {
+        if (groupMembersUpdateCallback != null) {
+            groupMembersUpdateCallback.onGroupMembersUpdated(groupId);
         }
     }
 

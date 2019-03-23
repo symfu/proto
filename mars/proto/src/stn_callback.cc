@@ -12,25 +12,23 @@
 
 /** * created on : 2012-11-28 * author : yerungui, caoshaokun
  */
-#include "stn_callback.h"
-
+#include "mars/proto/stn_callback.h"
 #include "mars/comm/autobuffer.h"
 #include "mars/comm/xlogger/xlogger.h"
 #include <mars/baseevent/base_logic.h>
 #include "mars/stn/stn.h"
 #include "mars/stn/src/net_core.h"//一定要放这里，Mac os 编译
 #include "libemqtt.h"
-#include "src/Proto/notify_and_pull_message.h"
-#include "src/Proto/version.h"
-#include "src/Proto/get_user_setting_result.h"
-#include "src/Proto/notify_recall_message.h"
-#include "src/Proto/con_ack_payload.h"
+#include "mars/proto/src/Proto/notify_and_pull_message.h"
+#include "mars/proto/src/Proto/version.h"
+#include "mars/proto/src/Proto/get_user_setting_result.h"
+#include "mars/proto/src/Proto/notify_recall_message.h"
+#include "mars/proto/src/Proto/con_ack_payload.h"
 #include "mars/proto/MessageDB.h"
 #include "mars/proto/src/DB2.h"
 #include <sstream>
 #include <map>
 #include "mars/comm/http.h"
-#include "proto/stn_callback.h"
 #include "mars/app/app.h"
 #include "mars/app/app_logic.h"
 #include "mars/stn/stn.h"
@@ -43,11 +41,11 @@ void (*shortlink_progress)(uint32_t task_id, uint32_t writed, uint32_t total) =
     if(task.taskid == 0) {
         return;
     }
-    //大于50K的才有回调
+    //only callback when data size more than 50KB
     if(task.cmdid == UPLOAD_SEND_OUT_CMDID && total > 50 * 1024) {
-        mars::stn::UploadTask *uploadTask = (mars::stn::UploadTask *)task.user_context;
-        uploadTask->mCallback->onProgress(writed, total);
-    }
+		mars::stn::UploadTask *uploadTask = (mars::stn::UploadTask *)task.user_context;
+		uploadTask->mCallback->onProgress(writed, total);
+	}
 };
 
 namespace mars {
@@ -79,6 +77,11 @@ namespace mars {
         void setRefreshGroupInfoCallback(GetGroupInfoCallback *callback) {
             StnCallBack::Instance()->setGetGroupInfoCallback(callback);
         }
+        
+        void setRefreshGroupMemberCallback(GetGroupMembersCallback *callback) {
+            StnCallBack::Instance()->setGetGroupMemberCallback(callback);
+        }
+        
         
         void setRefreshChannelInfoCallback(GetChannelInfoCallback *callback) {
             StnCallBack::Instance()->setGetChannelInfoCallback(callback);
@@ -145,6 +148,9 @@ void StnCallBack::Release() {
             m_getGroupInfoCB = callback;
         }
         
+        void StnCallBack::setGetGroupMemberCallback(GetGroupMembersCallback *callback) {
+            m_getGroupMembersCB = callback;
+        }
         
         void StnCallBack::setGetChannelInfoCallback(GetChannelInfoCallback *callback) {
             m_getChannelInfoCB = callback;
@@ -272,7 +278,7 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
             void onSuccess(const unsigned char* data, size_t len) {
                 std::list<TMessage> messageList;
                 PullMessageResult result;
-                std::string curUser = app::GetUserName();
+                std::string curUser = app::GetAccountUserName();
                 if (result.unserializeFromPBData((const void *)data, (int)len)) {
                     bool isBegin = false;
                     if (result.messages.size() > 100 && mPullType != Pull_ChatRoom) {
@@ -376,7 +382,7 @@ void StnCallBack::PullMessage(int64_t head, int type, bool retry, bool refreshSe
             void onSuccess(const unsigned char* data, size_t len) {
                 std::list<TUserSettingEntry> retList;
                 GetUserSettingResult result;
-                std::string curUser = app::GetUserName();
+                std::string curUser = app::GetAccountUserName();
                 
                 if (result.unserializeFromPBData((const void *)data, (int)len)) {
                     int64_t maxDt = 0;
@@ -489,7 +495,7 @@ void StnCallBack::OnPush(uint64_t _channel_id, uint32_t _cmdid, uint32_t _taskid
         if (message.unserializeFromPBData(_extend.Ptr(), (int)_extend.Length())) {
             std::list<TMessage> messageList;
             TMessage tmsg;
-            std::string curUser = app::GetUserName();
+            std::string curUser = app::GetAccountUserName();
             StnCallBack::Instance()->converProtoMessage(message, tmsg, false, curUser);
             messageList.push_back(tmsg);
             m_receiveMessageCB->onReceiveMessage(messageList, false);
@@ -518,7 +524,7 @@ void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, Auto
     
     std::string fileName;
     std::stringstream ss;
-    ss << mars::app::GetUserName();
+    ss << mars::app::GetAccountUserName();
     ss << "-";
     ss << time(NULL);
     ss << "-";
@@ -725,7 +731,6 @@ int StnCallBack::OnTaskEnd(uint32_t _taskid, void* const _user_context, int _err
 
       
 void StnCallBack::ReportConnectStatus(int _status, int longlink_status) {
-    
     switch (longlink_status) {
         case mars::stn::kServerDown:
             updateConnectionStatus(kConnectionStatusServerDown);
@@ -743,14 +748,10 @@ void StnCallBack::ReportConnectStatus(int _status, int longlink_status) {
         default:
             return;
     }
-    
 }
 
-// synccheck：长链成功后由网络组件触发
-// 需要组件组包，发送一个req过去，网络成功会有resp，但没有taskend，处理事务时要注意网络时序
-// 不需组件组包，使用长链做一个sync，不用重试
 int  StnCallBack::GetLonglinkIdentifyCheckBuffer(AutoBuffer& _identify_buffer, AutoBuffer& _buffer_hash, int32_t& _cmdid) {
-    _cmdid = MQTT_CONNECT_CMDID;
+	_cmdid = MQTT_CONNECT_CMDID;
     struct timeval tv;
     if(gettimeofday(&tv, NULL) != -1) {
         mIdentifyTime = (int64_t)tv.tv_sec*1000 + tv.tv_usec/1000;

@@ -15,7 +15,7 @@
 #include "mars/stn/stn_logic.h"
 #include "mars/stn/stn.h"
 #include "mars/proto/src/Proto/pbbase.h"
-#include "proto.h"
+#include "mars/proto/proto.h"
 
 
 

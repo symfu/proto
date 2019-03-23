@@ -94,7 +94,7 @@ AccountInfo GetAccountInfo() {
 	return info;
 }
 
-std::string GetUserName() {
+std::string GetAccountUserName() {
     xverbose_function();
 
     VarCache* cache_instance = VarCache::Singleton();
@@ -122,7 +122,7 @@ std::string GetUserName() {
 }
 
 std::string GetRecentUserName() {
-	return GetUserName();
+	return GetAccountUserName();
 }
 
 DEFINE_FIND_STATIC_METHOD(KC2Java_getClientVersion, KC2Java, "getClientVersion", "()I")

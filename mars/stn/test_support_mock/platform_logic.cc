@@ -18,7 +18,7 @@ struct AccountInfo
     int qquin;
 };
 
-std::string getUserName() { return "test";}
+std::string GetAccountUserName() { return "test";}
 std::string getRecentUserName()
 {
     return "test";

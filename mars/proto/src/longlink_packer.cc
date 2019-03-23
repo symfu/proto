@@ -20,7 +20,7 @@
 
 #include "mars/stn/proto/longlink_packer.h"
 
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 
 #include "mars/comm/xlogger/xlogger.h"
 #include "mars/comm/autobuffer.h"

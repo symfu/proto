@@ -162,7 +162,7 @@ namespace app {
 		return sg_callback->GetAccountInfo();
 	}
 
-	std::string GetUserName() {
+	std::string GetAccountUserName() {
 		xassert2(sg_callback != NULL);
 		AccountInfo info = sg_callback->GetAccountInfo();
 		return info.username;
@@ -170,7 +170,7 @@ namespace app {
 
 	std::string GetRecentUserName() {
 		xassert2(sg_callback != NULL);
-		return GetUserName();
+		return GetAccountUserName();
 	}
 
 	unsigned int GetClientVersion() {

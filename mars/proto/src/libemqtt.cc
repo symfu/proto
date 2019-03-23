@@ -261,7 +261,7 @@ int mqtt_connect(AutoBuffer& _packed)
     if (remainLen > 127) {
         fixedHeaderSize++;          // add an additional byte for Remaining Length
     }
-    uint8_t fixed_header[fixedHeaderSize];
+    uint8_t *fixed_header = (uint8_t *)malloc(sizeof(uint8_t)*fixedHeaderSize);
     
     // Message Type
     fixed_header[0] = mars::stn::MQTT_MSG_CONNECT;
@@ -278,10 +278,11 @@ int mqtt_connect(AutoBuffer& _packed)
     }
 
 	uint16_t offset = 0;
-	uint8_t packet[sizeof(fixed_header)+sizeof(var_header)+payload_len];
-	memset(packet, 0, sizeof(packet));
-	memcpy(packet, fixed_header, sizeof(fixed_header));
-	offset += sizeof(fixed_header);
+    size_t packetSize = sizeof(uint8_t)*fixedHeaderSize+sizeof(var_header)+payload_len;
+	uint8_t *packet = (uint8_t *)malloc(sizeof(uint8_t)*packetSize);
+	memset(packet, 0, sizeof(uint8_t)*packetSize);
+	memcpy(packet, fixed_header, sizeof(uint8_t)*fixedHeaderSize);
+	offset += (sizeof(uint8_t)*fixedHeaderSize);
 	memcpy(packet+offset, var_header, sizeof(var_header));
 	offset += sizeof(var_header);
 	// Client ID - UTF encoded
@@ -311,8 +312,15 @@ int mqtt_connect(AutoBuffer& _packed)
         pPwd = NULL;
         passwordlen = 0;
     }
-  _packed.AllocWrite(sizeof(packet));
-  _packed.Write(packet, sizeof(packet));
+
+  _packed.AllocWrite(sizeof(uint8_t)*packetSize);
+  _packed.Write(packet, sizeof(uint8_t)*packetSize);
+    
+    free(fixed_header);
+    fixed_header = NULL;
+    free(packet);
+    packet = NULL;
+    
 	return 1;
 }
 
@@ -367,8 +375,9 @@ int mqtt_publish_with_qos(const char* topic, const unsigned char* msg, size_t ms
 	}
 
 	// Variable header
-	uint8_t var_header[topiclen+2+qos_size]; // Topic size (2 bytes), utf-encoded topic
-	memset(var_header, 0, sizeof(var_header));
+    size_t varHeaderSize = topiclen+2+qos_size;
+	uint8_t *var_header = (uint8_t *)malloc(sizeof(uint8_t)*varHeaderSize); // Topic size (2 bytes), utf-encoded topic
+	memset(var_header, 0, sizeof(uint8_t)*varHeaderSize);
 	var_header[0] = topiclen>>8;
 	var_header[1] = topiclen&0xFF;
 	memcpy(var_header+2, topic, topiclen);
@@ -382,14 +391,14 @@ int mqtt_publish_with_qos(const char* topic, const unsigned char* msg, size_t ms
 	// actually, it can be up to 4 bytes but I'm making the assumption the embedded device will only
 	// need up to two bytes of length (handles up to 16,383 (almost 16k) sized message)
 	uint8_t fixedHeaderSize = 2;    // Default size = one byte Message Type + one byte Remaining Length
-	uint16_t remainLen = sizeof(var_header)+msglen;
+	uint16_t remainLen = sizeof(uint8_t)*varHeaderSize+msglen;
 	if (remainLen > 127) {
 		fixedHeaderSize++;          // add an additional byte for Remaining Length
 	}
     if (remainLen > 16383) {
         fixedHeaderSize++;
     }
-	uint8_t fixed_header[fixedHeaderSize];
+    uint8_t *fixed_header = (uint8_t *)malloc(sizeof(uint8_t) * fixedHeaderSize);
     
    // Message Type, DUP flag, QoS level, Retain
    fixed_header[0] = mars::stn::MQTT_MSG_PUBLISH | qos_flag;
@@ -420,20 +429,21 @@ int mqtt_publish_with_qos(const char* topic, const unsigned char* msg, size_t ms
        }
    }
 
-	uint8_t packet[sizeof(fixed_header)+sizeof(var_header)+msglen];
-	memset(packet, 0, sizeof(packet));
-	memcpy(packet, fixed_header, sizeof(fixed_header));
-	memcpy(packet+sizeof(fixed_header), var_header, sizeof(var_header));
-	memcpy(packet+sizeof(fixed_header)+sizeof(var_header), msg, msglen);
-
-  _packed.AllocWrite(sizeof(packet));
-  _packed.Write(packet, sizeof(packet));
+  _packed.AllocWrite(sizeof(uint8_t) * fixedHeaderSize+sizeof(uint8_t)*varHeaderSize+msglen);
+  _packed.Write(fixed_header, sizeof(uint8_t) * fixedHeaderSize);
+  _packed.Write(var_header, sizeof(uint8_t) * varHeaderSize);
+  _packed.Write(msg, msglen);
 
     if (msglen > 0) {
         free(ptmp);
         msg = NULL;
         msglen = 0;
     }
+    free(var_header);
+    var_header = NULL;
+    free(fixed_header);
+    fixed_header = NULL;
+    
 	return 1;
 }
 
@@ -474,8 +484,9 @@ int mqtt_subscribe(const char* topic, uint16_t message_id, AutoBuffer& _packed) 
 	var_header[1] = message_id&0xFF;
 
 	// utf topic
-	uint8_t utf_topic[topiclen+3]; // Topic size (2 bytes), utf-encoded topic, QoS byte
-	memset(utf_topic, 0, sizeof(utf_topic));
+    size_t topicBufSize = topiclen+3;
+	uint8_t *utf_topic = (uint8_t *)malloc(sizeof(uint8_t) * topicBufSize); // Topic size (2 bytes), utf-encoded topic, QoS byte
+	memset(utf_topic, 0, sizeof(uint8_t) * topicBufSize);
 	utf_topic[0] = topiclen>>8;
 	utf_topic[1] = topiclen&0xFF;
 	memcpy(utf_topic+2, topic, topiclen);
@@ -484,19 +495,16 @@ int mqtt_subscribe(const char* topic, uint16_t message_id, AutoBuffer& _packed) 
 	// Fixed header
 	uint8_t fixed_header[] = {
 		mars::stn::MQTT_MSG_SUBSCRIBE | MQTT_QOS1_FLAG, // Message Type, DUP flag, QoS level, Retain
-		(uint8_t)(sizeof(var_header)+sizeof(utf_topic))
+		(uint8_t)(sizeof(var_header)+sizeof(uint8_t) * topicBufSize)
 	};
 
-	uint8_t packet[sizeof(var_header)+sizeof(fixed_header)+sizeof(utf_topic)];
-	memset(packet, 0, sizeof(packet));
-	memcpy(packet, fixed_header, sizeof(fixed_header));
-	memcpy(packet+sizeof(fixed_header), var_header, sizeof(var_header));
-	memcpy(packet+sizeof(fixed_header)+sizeof(var_header), utf_topic, sizeof(utf_topic));
-
-  _packed.AllocWrite(sizeof(packet));
-  _packed.Write(packet, sizeof(packet));
-
-	return 1;
+  _packed.AllocWrite(sizeof(var_header)+sizeof(fixed_header)+sizeof(uint8_t) * topicBufSize);
+  _packed.Write(fixed_header, sizeof(fixed_header));
+  _packed.Write(var_header, sizeof(var_header));
+  _packed.Write(utf_topic, sizeof(uint8_t) * topicBufSize);
+    free(utf_topic);
+    utf_topic = NULL;
+    return 1;
 }
 
 int mqtt_unsubscribe(const char* topic, uint16_t message_id, AutoBuffer& _packed) {
@@ -509,8 +517,9 @@ int mqtt_unsubscribe(const char* topic, uint16_t message_id, AutoBuffer& _packed
 
 
 	// utf topic
-	uint8_t utf_topic[topiclen+2]; // Topic size (2 bytes), utf-encoded topic
-	memset(utf_topic, 0, sizeof(utf_topic));
+    size_t topicBufSize = topiclen+2;
+	uint8_t *utf_topic = (uint8_t *)malloc(sizeof(uint8_t) * topicBufSize); // Topic size (2 bytes), utf-encoded topic
+	memset(utf_topic, 0, sizeof(uint8_t) * topicBufSize);
 	utf_topic[0] = topiclen>>8;
 	utf_topic[1] = topiclen&0xFF;
 	memcpy(utf_topic+2, topic, topiclen);
@@ -518,18 +527,17 @@ int mqtt_unsubscribe(const char* topic, uint16_t message_id, AutoBuffer& _packed
 	// Fixed header
 	uint8_t fixed_header[] = {
 		mars::stn::MQTT_MSG_UNSUBSCRIBE | MQTT_QOS1_FLAG, // Message Type, DUP flag, QoS level, Retain
-		(uint8_t)(sizeof(var_header)+sizeof(utf_topic))
+		(uint8_t)(sizeof(var_header)+sizeof(uint8_t) * topicBufSize)
 	};
 
-	uint8_t packet[sizeof(var_header)+sizeof(fixed_header)+sizeof(utf_topic)];
-	memset(packet, 0, sizeof(packet));
-	memcpy(packet, fixed_header, sizeof(fixed_header));
-	memcpy(packet+sizeof(fixed_header), var_header, sizeof(var_header));
-	memcpy(packet+sizeof(fixed_header)+sizeof(var_header), utf_topic, sizeof(utf_topic));
-
-  _packed.AllocWrite(sizeof(packet));
-  _packed.Write(packet, sizeof(packet));
-
+	
+    _packed.AllocWrite(sizeof(var_header)+sizeof(fixed_header)+sizeof(uint8_t) * topicBufSize);
+    _packed.Write(fixed_header, sizeof(fixed_header));
+    _packed.Write(var_header, sizeof(var_header));
+    _packed.Write(utf_topic, sizeof(uint8_t) * topicBufSize);
+    free(utf_topic);
+    utf_topic= NULL;
+    
 	return 1;
 }
 const static unsigned char aes_key[] = {0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x78,0x79,0x7A,0x7B,0x7C,0x7D,0x7E,0x7F};

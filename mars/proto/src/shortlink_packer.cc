@@ -37,7 +37,7 @@ namespace mars { namespace stn {
         
         
         unsigned int tmpLen = 0;
-        unsigned char *ptmp = encrypt_data((const unsigned char*)id.c_str(), id.length(), &tmpLen, true);
+        unsigned char *ptmp = encrypt_data((const unsigned char*)id.c_str(), (unsigned int)id.length(), &tmpLen, true);
         
         
         int dstlen = modp_b64_encode_len(tmpLen);
@@ -54,7 +54,9 @@ namespace mars { namespace stn {
         
         std::string result = std::string(dstbuf);
         
-        free(ptmp);
+        free(dstbuf);
+        dstbuf = NULL;
+        
         return result;
     }
     
@@ -63,7 +65,7 @@ namespace mars { namespace stn {
             if (!encodedUserId.empty()) {
                 return encodedUserId;
             }
-            encodedUserId = getEncodedId(mars::app::GetUserName());
+            encodedUserId = getEncodedId(mars::app::GetAccountUserName());
             return encodedUserId;
         } else {
             if (!encodedClientId.empty()) {
