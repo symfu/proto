@@ -93,3 +93,6 @@ xcshareddata
 mars/win32proj/Debug/mars.lastbuildstate
 mars/win32proj/Debug/mars.unsuccessfulbuild
 local.properties
+mars/libraries/mars_android_sdk/libs
+mars/libraries/mars_android_sdk/mars_libs
+mars/libraries/mars_android_sdk/so_cache
