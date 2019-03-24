@@ -10,6 +10,7 @@
 #include "mars/app/app.h"
 #include "mars/comm/xlogger/xlogger.h"
 #include "business.h"
+#include "boost/filesystem.hpp"
 
 namespace mars {
     namespace stn {
@@ -259,7 +260,14 @@ namespace mars {
         
         void DB2::Open(const std::string &sec) {
             secret = sec;
-            std::string DB2Path = app::GetAppFilePath() + "/" + DB2_NAME;
+            
+            std::string path = app::GetAppFilePath();
+            if(!boost::filesystem::exists(path)) {
+                boost::filesystem::create_directories(path);
+            }
+            
+            
+            std::string DB2Path = path + "/" + DB2_NAME;
             
             closeDB();
             sqlite3_shutdown();
