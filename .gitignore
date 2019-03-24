@@ -96,3 +96,4 @@ local.properties
 mars/libraries/mars_android_sdk/libs
 mars/libraries/mars_android_sdk/mars_libs
 mars/libraries/mars_android_sdk/so_cache
+mars/boost/Release
