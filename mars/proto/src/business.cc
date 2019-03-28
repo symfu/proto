@@ -904,17 +904,16 @@ public:
             if (!entry.value.empty()) {
                 issilent = std::stoi(entry.value);
             }
-
 #endif
             if(entry.scope == kUserSettingConversationSilent) {
                 MessageDB::Instance()->updateConversationIsSilent(conversationType, target, line, issilent);
             } else {
                 MessageDB::Instance()->updateConversationIsTop(conversationType, target, line, issilent);
             }
-
-            if(callback)
-                callback->onSuccess();
         }
+        
+        if(callback)
+            callback->onSuccess();
         delete this;
     };
     void onFalure(int errorCode) {
@@ -2048,7 +2047,7 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             int len2 = (int)modp_b64_decode_len(base64str.size());
             char * tmp = (char *)calloc( len2, sizeof(unsigned char));
             int len = (int)Comm::DecodeBase64((unsigned char*)base64str.c_str(), (unsigned char*)tmp, (int)base64str.size());
-            std::string result = std::string(tmp);
+            std::string result = std::string(tmp, len);
             free(tmp);
 
             return result;
