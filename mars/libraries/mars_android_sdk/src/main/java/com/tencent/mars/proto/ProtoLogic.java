@@ -39,7 +39,7 @@ public class ProtoLogic {
     }
 
     public interface IGroupMembersUpdateCallback {
-        void onGroupMembersUpdated(String updatedGroupId);
+        void onGroupMembersUpdated(String updatedGroupId, List<ProtoGroupMember> members);
     }
 
     public interface IChannelInfoUpdateCallback {
@@ -140,6 +140,10 @@ public class ProtoLogic {
         ProtoLogic.groupInfoUpdateCallback = groupInfoUpdateCallback;
     }
 
+    public static void setGroupMembersUpdateCallback(IGroupMembersUpdateCallback groupMembersUpdateCallback) {
+        ProtoLogic.groupMembersUpdateCallback = groupMembersUpdateCallback;
+    }
+
     public static void setChannelInfoUpdateCallback(IChannelInfoUpdateCallback channelInfoUpdateCallback) {
         ProtoLogic.channelInfoUpdateCallback = channelInfoUpdateCallback;
     }
@@ -201,9 +205,13 @@ public class ProtoLogic {
         }
     }
 
-    public static void onGroupMembersUpdated(String groupId) {
+    public static void onGroupMembersUpdated(String groupId, ProtoGroupMember[] members) {
         if (groupMembersUpdateCallback != null) {
-            groupMembersUpdateCallback.onGroupMembersUpdated(groupId);
+            List<ProtoGroupMember> list = new ArrayList<>();
+            for (ProtoGroupMember member : members) {
+                list.add(member);
+            }
+            groupMembersUpdateCallback.onGroupMembersUpdated(groupId, list);
         }
     }
 

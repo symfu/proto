@@ -97,6 +97,7 @@ extern void SetObjectValue_Object(JNIEnv *&env, jobject &obj, jclass &cls,
 extern void SetObjectValue_ObjectArray(JNIEnv *&env, jobject &obj, jclass &cls,
                            const char *pszSetMethod, jobjectArray &jVal, const char *sign);
 extern jstring cstring2jstring(JNIEnv *env, const char* str);
+extern jobject convertProtoGroupMember(JNIEnv *env, const mars::stn::TGroupMember &tGroupMember);
 
 
 DEFINE_FIND_STATIC_METHOD(KProto2Java_onConnectionStatusChanged, KProto2Java, "onConnectionStatusChanged", "(I)V")
@@ -460,7 +461,7 @@ class GGCB : public mars::stn::GetGroupInfoCallback {
 };
 
 
-DEFINE_FIND_STATIC_METHOD(KProto2Java_onGroupMembersUpdated, KProto2Java, "onGroupMembersUpdated", "([Ljava/lang/String;)V")
+DEFINE_FIND_STATIC_METHOD(KProto2Java_onGroupMembersUpdated, KProto2Java, "onGroupMembersUpdated", "(Ljava/lang/String;[Lcn/wildfirechat/model/ProtoGroupMember;)V")
 class GGMCB : public mars::stn::GetGroupMembersCallback {
   public:
 
@@ -470,8 +471,18 @@ class GGMCB : public mars::stn::GetGroupMembersCallback {
         ScopeJEnv scope_jenv(cache_instance->GetJvm());
         JNIEnv *env = scope_jenv.GetEnv();
 
+        jobjectArray jo_array = env->NewObjectArray(groupMemberList.size(), (jclass) g_objGroupMember, 0);
+        int i = 0;
+        for(std::list<mars::stn::TGroupMember>::const_iterator it = groupMemberList.begin(); it != groupMemberList.end(); it++) {
+            const mars::stn::TGroupMember &tgm = *it;
+            jobject gm = convertProtoGroupMember(env, tgm);
+
+            env->SetObjectArrayElement(jo_array, i++, gm);
+            env->DeleteLocalRef(gm);
+        }
+
         jstring jstr = cstring2jstring(env, groupId.c_str());
-        JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onGroupMembersUpdated, jstr);
+        JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onGroupMembersUpdated, jstr, jo_array);
         env->DeleteLocalRef(jstr);
     }
   }
