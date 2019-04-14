@@ -2259,7 +2259,11 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
 
 //            std::string to;
             writer.String("to");
-            writer.String(to);
+            writer.StartArray();
+            for (std::list<std::string>::const_iterator it = to.begin(); it != to.end(); ++it) {
+                writer.String(*it);
+            }
+            writer.EndArray();
 
             writer.EndObject();
         }
