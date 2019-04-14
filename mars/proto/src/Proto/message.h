@@ -37,7 +37,7 @@ namespace mars{
             MessageContent content;
             int64_t messageId;
             int64_t serverTimestamp;
-            std::string toUser;
+            std::list<std::string> tos;
         };
     }
 }

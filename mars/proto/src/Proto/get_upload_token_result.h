@@ -33,6 +33,7 @@ namespace mars{
             std::string domain;
             std::string token;
             std::string server;
+            int port;
         };
     }
 }

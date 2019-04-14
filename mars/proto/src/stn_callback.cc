@@ -231,7 +231,7 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
             tmsg.content.mentionedTargets = pmsg.content.mentionedTargets;
             
             tmsg.from = pmsg.fromUser;
-            tmsg.to = pmsg.toUser;
+            tmsg.to = pmsg.tos;
             if (tmsg.from == curUser) {
                 tmsg.target = pmsg.conversation.target;
                 tmsg.direction = 0;

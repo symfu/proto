@@ -17,11 +17,10 @@ namespace mars{
         }
         
         bool GetUploadTokenResult::unserializeFromPBMsg(struct pbc_rmessage *msg, bool destroy) {
-            
-            
             domain = getString(msg, keyDomain, 0);
             token = getString(msg, keyToken, 0);
             server = getString(msg, keyServer, 0);
+            port = getInt(msg, keyPort, 0);
             
             if(destroy)
             finishRead(msg);
@@ -32,6 +31,7 @@ namespace mars{
             setString(msg, keyDomain, domain);
             setString(msg, keyToken, token);
             setString(msg, keyServer, server);
+            setInt(msg, keyPort, port);
         }
     }
 }

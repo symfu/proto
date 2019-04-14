@@ -48,6 +48,7 @@ namespace mars{
         extern const char* keyDomain;
         extern const char* keyToken;
         extern const char* keyServer;
+        extern const char* keyPort;
         
         extern const char* keyTargetId;
         extern const char* keyName;
@@ -66,6 +67,7 @@ namespace mars{
         extern const char* keyConversation;
         extern const char* keyFromUser;
         extern const char* keyToUser;
+        extern const char* keyTo;
         extern const char* keyContent;
         extern const char* keyMessageId;
         extern const char* keyServerTimestamp;

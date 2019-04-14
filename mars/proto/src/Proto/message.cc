@@ -24,7 +24,10 @@ namespace mars{
             content.unserializeFromPBMsg(contentMsg, false);
             messageId = getInt64(msg, keyMessageId, 0);
             serverTimestamp = getInt64(msg, keyServerTimestamp, 0);
-            toUser = getString(msg, keyToUser, 0);
+            for (int i = 0; i < getSize(msg, keyId); i++) {
+                std::string value = getString(msg, keyTo, i);
+                tos.push_back(value);
+            }
             
             if(destroy)
             finishRead(msg);
@@ -42,7 +45,10 @@ namespace mars{
             
             setInt64(msg, keyMessageId, messageId);
             setInt64(msg, keyServerTimestamp, serverTimestamp);
-            setString(msg, keyToUser, toUser);
+
+            for (std::list<std::string>::iterator it = tos.begin(); it != tos.end(); it++) {
+                setString(msg, keyTo, *it);
+            }
             
         }
     }

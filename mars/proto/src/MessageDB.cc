@@ -14,6 +14,8 @@
 #include "mars/app/app.h"
 #include <map>
 #include <time.h>
+#include <sstream>
+#include <iostream>
 
 namespace mars {
     namespace stn {
@@ -107,7 +109,14 @@ namespace mars {
             db->Bind(statementHandle, msg.target, index++);
             db->Bind(statementHandle, msg.line, index++);
             db->Bind(statementHandle, msg.from, index++);
-            db->Bind(statementHandle, msg.to, index++);
+            std::string toStr;
+            for (std::list<std::string>::iterator it = msg.to.begin(); it != msg.to.end(); ++it) {
+                if (!toStr.empty()) {
+                    toStr.append(",");
+                }
+                toStr.append(*it);
+            }
+            db->Bind(statementHandle, toStr, index++);
             
             db->Bind(statementHandle, msg.content.type, index++);
             db->Bind(statementHandle, msg.content.searchableContent, index++);
@@ -1148,7 +1157,16 @@ namespace mars {
                 msg.target = db->getStringValue(statementHandle, index++);
                 msg.line = db->getIntValue(statementHandle, index++);
                 msg.from = db->getStringValue(statementHandle, index++);
-                msg.to = db->getStringValue(statementHandle, index++);
+                std::string toStr = db->getStringValue(statementHandle, index++);
+                
+                if (!toStr.empty()) {
+                    std::istringstream f(toStr);
+                    std::string s;
+                    while (getline(f, s, ';')) {
+                        msg.to.push_back(s);
+                    }
+                }
+                
                 
                 msg.content.type = db->getIntValue(statementHandle, index++);
                 msg.content.searchableContent = db->getStringValue(statementHandle, index++);
@@ -1254,8 +1272,16 @@ namespace mars {
           msg.target = db->getStringValue(statementHandle, index++);
           msg.line = db->getIntValue(statementHandle, index++);
           msg.from = db->getStringValue(statementHandle, index++);
-          msg.to = db->getStringValue(statementHandle, index++);
+            std::string toStr = db->getStringValue(statementHandle, index++);
           
+            if (!toStr.empty()) {
+                std::istringstream f(toStr.c_str());
+                std::string s;
+                while (getline(f, s, ';')) {
+                    msg.to.push_back(s);
+                }
+            }
+            
           msg.content.type = db->getIntValue(statementHandle, index++);
           msg.content.searchableContent = db->getStringValue(statementHandle, index++);
           msg.content.pushContent = db->getStringValue(statementHandle, index++);
@@ -1349,8 +1375,15 @@ namespace mars {
           msg.target = db->getStringValue(statementHandle, index++);
           msg.line = db->getIntValue(statementHandle, index++);
           msg.from = db->getStringValue(statementHandle, index++);
-          msg.to = db->getStringValue(statementHandle, index++);
-          
+          std::string toStr = db->getStringValue(statementHandle, index++);
+            
+            if (!toStr.empty()) {
+                std::istringstream f(toStr.c_str());
+                std::string s;
+                while (getline(f, s, ';')) {
+                    msg.to.push_back(s);
+                }
+            }
           msg.content.type = db->getIntValue(statementHandle, index++);
           msg.content.searchableContent = db->getStringValue(statementHandle, index++);
           msg.content.pushContent = db->getStringValue(statementHandle, index++);
@@ -1730,8 +1763,15 @@ namespace mars {
                 msg.target = db->getStringValue(statementHandle, index++);
                 msg.line = db->getIntValue(statementHandle, index++);
                 msg.from = db->getStringValue(statementHandle, index++);
-                msg.to = db->getStringValue(statementHandle, index++);
+                std::string toStr = db->getStringValue(statementHandle, index++);
                 
+                if (!toStr.empty()) {
+                    std::istringstream f(toStr.c_str());
+                    std::string s;
+                    while (getline(f, s, ';')) {
+                        msg.to.push_back(s);
+                    }
+                }
                 msg.content.type = db->getIntValue(statementHandle, index++);
                 msg.content.searchableContent = db->getStringValue(statementHandle, index++);
                 msg.content.pushContent = db->getStringValue(statementHandle, index++);

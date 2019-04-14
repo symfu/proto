@@ -629,7 +629,7 @@ void sendSavedMsg(long messageId, TMessage &tmsg, SendMsgCallback *callback, int
 
     fillConversation(tmsg, &(message->conversation));
     message->fromUser = app::GetAccountUserName();
-    message->toUser = tmsg.to;
+    message->tos = tmsg.to;
     fillMessageContent(tmsg.content, &(message->content), expireDuration);
 
     publishTask(message, new MessagePublishCallback(messageId, callback), sendMessageTopic, true);

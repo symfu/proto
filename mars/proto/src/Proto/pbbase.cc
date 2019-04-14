@@ -43,6 +43,8 @@ namespace mars{
         const char* keyDomain = "domain";
         const char* keyToken = "token";
         const char* keyServer = "server";
+        const char* keyPort = "port";
+        
         
         const char* keyTargetId = "target_id";
         const char* keyName = "name";
@@ -61,6 +63,7 @@ namespace mars{
         const char* keyConversation = "conversation";
         const char* keyFromUser = "from_user";
         const char* keyToUser = "to_user";
+        const char* keyTo = "to";
         const char* keyContent = "content";
         const char* keyMessageId = "message_id";
         const char* keyServerTimestamp = "server_timestamp";
