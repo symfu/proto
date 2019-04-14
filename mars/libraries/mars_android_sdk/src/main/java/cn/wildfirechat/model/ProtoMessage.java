@@ -11,7 +11,7 @@ public class ProtoMessage {
     private int line;
 
     private String from;
-    private String to;
+    private String[] tos;
     private ProtoMessageContent content;
     private long messageId;
     private int direction;
@@ -51,12 +51,12 @@ public class ProtoMessage {
         this.from = from;
     }
 
-    public String getTo() {
-        return to;
+    public String[] getTos() {
+        return tos;
     }
 
-    public void setTo(String to) {
-        this.to = to;
+    public void setTos(String[] tos) {
+        this.tos = tos;
     }
 
     public ProtoMessageContent getContent() {

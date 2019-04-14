@@ -137,7 +137,18 @@ jobject convertProtoMessage(JNIEnv *env, const mars::stn::TMessage *tMessage) {
     SetObjectValue_String(env, obj, jmsg, "setFrom", tMessage->from.c_str());
 
     //ret.toUser = [NSString stringWithUTF8String:tMessage->to.c_str()];
-    SetObjectValue_String(env, obj, jmsg, "setTo", tMessage->to.c_str());
+    if(tMessage->to.size()) {
+        jclass objClass = env->FindClass("java/lang/String");//定义数组中元素类型
+        jobjectArray jo_array = env->NewObjectArray(tMessage->to.size(), objClass, 0);
+        int i = 0;
+        for (std::list<std::string>::const_iterator it = tMessage->to.begin(); it != tMessage->to.end(); it++) {
+            jstring jVal = cstring2jstring(env, (*it).c_str());
+            env->SetObjectArrayElement(jo_array, i++, jVal);
+            env->DeleteLocalRef(jVal);
+        }
+        SetObjectValue_ObjectArray(env, obj, jmsg, "setTos", jo_array, "([Ljava/lang/String;)V");
+        env->DeleteLocalRef(jo_array);
+    }
 
     //ret.conversation = [[WFCCConversation alloc] init];
     //ret.conversation.type = (WFCCConversationType)tMessage->conversationType;
@@ -967,10 +978,10 @@ mars::stn::TMessage convertMessage(JNIEnv *env, jobject msg) {
     env->DeleteLocalRef(str);
 
     //ret.toUser = [NSString stringWithUTF8String:tMessage->to.c_str()];
-    field = env->GetFieldID(jmsg, "to", "Ljava/lang/String;");
-    str = (jstring)env->GetObjectField(msg, field);
-    tMessage.to = jstringToString(env, str);
-    env->DeleteLocalRef(str);
+    field = env->GetFieldID(jmsg, "tos", "[Ljava/lang/String;");
+    jobjectArray jstringArrayTos = (jobjectArray)env->GetObjectField(msg, field);
+    tMessage.to = jarrayToStringList(env, jstringArrayTos);
+    env->DeleteLocalRef(jstringArrayTos);
 
     //ret.conversation = [[WFCCConversation alloc] init];
     //ret.conversation.type = (WFCCConversationType)tMessage->conversationType;
