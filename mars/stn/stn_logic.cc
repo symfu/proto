@@ -265,6 +265,11 @@ void network_export_symbols_0(){}
 	//callback functions
 bool (*MakesureAuthed)()
 = []() {
+    #ifdef ANDROID
+    if(sg_callback == NULL) {
+        return false;
+    }
+    #endif
 	xassert2(sg_callback != NULL);
 	return sg_callback->MakesureAuthed();
 };
@@ -272,6 +277,12 @@ bool (*MakesureAuthed)()
 // 流量统计 
 void (*TrafficData)(ssize_t _send, ssize_t _recv)
 = [](ssize_t _send, ssize_t _recv) {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return;
+    }
+#endif
+
     xassert2(sg_callback != NULL);
     return sg_callback->TrafficData(_send, _recv);
 };
@@ -279,6 +290,12 @@ void (*TrafficData)(ssize_t _send, ssize_t _recv)
 //底层询问上层该host对应的ip列表 
 std::vector<std::string> (*OnNewDns)(const std::string& host)
 = [](const std::string& host) {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        std::vector<std::string> iplist;
+        return iplist;
+    } 
+#endif
 	xassert2(sg_callback != NULL);
 	return sg_callback->OnNewDns(host);
 };
@@ -286,24 +303,44 @@ std::vector<std::string> (*OnNewDns)(const std::string& host)
 //网络层收到push消息回调 
 void (*OnPush)(uint64_t _channel_id, uint32_t _cmdid, uint32_t _taskid, const AutoBuffer& _body, const AutoBuffer& _extend)
 = [](uint64_t _channel_id, uint32_t _cmdid, uint32_t _taskid, const AutoBuffer& _body, const AutoBuffer& _extend) {
-	xassert2(sg_callback != NULL);
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return;
+    }
+#endif
+    xassert2(sg_callback != NULL);
 	sg_callback->OnPush(_channel_id, _cmdid, _taskid, _body, _extend);
 };
 //底层获取task要发送的数据 
 bool (*Req2Buf)(uint32_t taskid,  void* const user_context, AutoBuffer& outbuffer, AutoBuffer& extend, int& error_code, const int channel_select)
 = [](uint32_t taskid,  void* const user_context, AutoBuffer& outbuffer, AutoBuffer& extend, int& error_code, const int channel_select) {
-	xassert2(sg_callback != NULL);
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return false;
+    }
+#endif
+    xassert2(sg_callback != NULL);
 	return sg_callback->Req2Buf(taskid, user_context, outbuffer, extend, error_code, channel_select);
 };
 //底层回包返回给上层解析 
 int (*Buf2Resp)(uint32_t taskid, void* const user_context, const AutoBuffer& inbuffer, const AutoBuffer& extend, int& error_code, const int channel_select)
 = [](uint32_t taskid, void* const user_context, const AutoBuffer& inbuffer, const AutoBuffer& extend, int& error_code, const int channel_select) {
-	xassert2(sg_callback != NULL);
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return -14;
+    }
+#endif
+    xassert2(sg_callback != NULL);
 	return sg_callback->Buf2Resp(taskid, user_context, inbuffer, extend, error_code, channel_select);
 };
 //任务执行结束 
 int  (*OnTaskEnd)(uint32_t taskid, void* const user_context, int error_type, int error_code)
 = [](uint32_t taskid, void* const user_context, int error_type, int error_code) {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return 0;
+    }
+#endif
 	xassert2(sg_callback != NULL);
 	return sg_callback->OnTaskEnd(taskid, user_context, error_type, error_code);
  };
@@ -311,6 +348,11 @@ int  (*OnTaskEnd)(uint32_t taskid, void* const user_context, int error_type, int
 //上报网络连接状态 
 void (*ReportConnectStatus)(int status, int longlink_status)
 = [](int status, int longlink_status) {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return;
+    }
+#endif
 	xassert2(sg_callback != NULL);
 	sg_callback->ReportConnectStatus(status, longlink_status);
 };
@@ -328,18 +370,33 @@ void (*OnShortLinkNetworkError)(ErrCmdType _err_type, int _err_code, const std::
 //长连信令校验 ECHECK_NOW = 0, ECHECK_NEVER = 1, ECHECK_NEXT = 2
 int  (*GetLonglinkIdentifyCheckBuffer)(AutoBuffer& identify_buffer, AutoBuffer& buffer_hash, int32_t& cmdid)
 = [](AutoBuffer& identify_buffer, AutoBuffer& buffer_hash, int32_t& cmdid) {
-	xassert2(sg_callback != NULL);
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return 2;
+    }
+#endif
+    xassert2(sg_callback != NULL);
 	return sg_callback->GetLonglinkIdentifyCheckBuffer(identify_buffer, buffer_hash, cmdid);
 };
 //长连信令校验回包
 bool (*OnLonglinkIdentifyResponse)(const AutoBuffer& response_buffer, const AutoBuffer& identify_buffer_hash)
 = [](const AutoBuffer& response_buffer, const AutoBuffer& identify_buffer_hash) {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return false;
+    }
+#endif
 	xassert2(sg_callback != NULL);
 	return sg_callback->OnLonglinkIdentifyResponse(response_buffer, identify_buffer_hash);
 };
 
 void (*RequestSync)() 
 = []() {
+#ifdef ANDROID
+    if(sg_callback == NULL) {
+        return;
+    }
+#endif
 	xassert2(sg_callback != NULL);
 	sg_callback->RequestSync();
 };
