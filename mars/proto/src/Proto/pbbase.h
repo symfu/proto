@@ -161,6 +161,9 @@ namespace mars{
         extern const char* keyAppVersion;
         extern const char* keySdkVersion;
         
+        extern const char* keyBeforeUid;
+        extern const char* keyCount;
+        
             class PBBase {                
             private:
                 static struct pbc_env *m_env;

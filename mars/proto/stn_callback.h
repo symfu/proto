@@ -41,6 +41,7 @@ namespace mars {
         class RefreshUserInfoCallback;
         class TLoadFriendCallback;
         class Message;
+        class LoadRemoteMessagesPublishCallback;
 class StnCallBack : public Callback,  PullingMessageCallback {
     
 private:
@@ -118,6 +119,7 @@ public:
     friend class PullingMessagePublishCallback;
     friend class TGetChannelInfoCallback;
     friend class GetGroupMembersPublishCallback;
+    friend class LoadRemoteMessagesPublishCallback;
 private:
     static StnCallBack* instance_;
     void PullMessage(int64_t head, int type, bool retry, bool refreshSetting);

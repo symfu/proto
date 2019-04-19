@@ -162,7 +162,8 @@ namespace mars{
         const char* keyCarrierName = "carrier_name";
         const char* keyAppVersion = "app_version";
         const char* keySdkVersion = "sdk_version";
-        
+        const char* keyBeforeUid = "before_uid";
+        const char* keyCount = "count";
         
         pbc_env* initEnv() {
             struct pbc_slice slice;

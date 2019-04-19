@@ -74,6 +74,7 @@
 		2F9F99E321BD2EFF00406FC5 /* listen_channel_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 2F9F99E121BD2EFF00406FC5 /* listen_channel_request.cc */; };
 		2F9F99E621BD30A400406FC5 /* pull_channel_info_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 2F9F99E521BD30A400406FC5 /* pull_channel_info_request.cc */; };
 		901FE0FC21D9B79200F0DA33 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 901FE0FB21D9B79200F0DA33 /* sqlite3.c */; };
+		904E6154226351990006ECB8 /* load_remote_messages.cc in Sources */ = {isa = PBXBuildFile; fileRef = 904E6152226351990006ECB8 /* load_remote_messages.cc */; };
 		905A9CAA21D7A3770008E572 /* route_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 905A9CA921D7A3770008E572 /* route_request.cc */; };
 		90804E921FF680E8009E890F /* user_setting_entry.cc in Sources */ = {isa = PBXBuildFile; fileRef = 90804E911FF680E8009E890F /* user_setting_entry.cc */; };
 		90804E951FF682D0009E890F /* modify_user_setting_request.cc in Sources */ = {isa = PBXBuildFile; fileRef = 90804E931FF682CF009E890F /* modify_user_setting_request.cc */; };
@@ -231,6 +232,8 @@
 		2F9F99E521BD30A400406FC5 /* pull_channel_info_request.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pull_channel_info_request.cc; sourceTree = "<group>"; };
 		901FE0FA21D9B79200F0DA33 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
 		901FE0FB21D9B79200F0DA33 /* sqlite3.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
+		904E6152226351990006ECB8 /* load_remote_messages.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = load_remote_messages.cc; sourceTree = "<group>"; };
+		904E6153226351990006ECB8 /* load_remote_messages.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = load_remote_messages.h; sourceTree = "<group>"; };
 		905A9CA821D7A3760008E572 /* route_request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = route_request.h; sourceTree = "<group>"; };
 		905A9CA921D7A3770008E572 /* route_request.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = route_request.cc; sourceTree = "<group>"; };
 		90804E901FF680E8009E890F /* user_setting_entry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = user_setting_entry.h; sourceTree = "<group>"; };
@@ -324,6 +327,8 @@
 				2E88EDF61FD0DECE00229552 /* id_list_buf.h */,
 				2E88EDF81FD0E02E00229552 /* message.cc */,
 				2E88EDF91FD0E02E00229552 /* message.h */,
+				904E6152226351990006ECB8 /* load_remote_messages.cc */,
+				904E6153226351990006ECB8 /* load_remote_messages.h */,
 				2EA952451FCF87FB000921CC /* messagecontent.cc */,
 				2EA952461FCF87FB000921CC /* messagecontent.h */,
 				90B438C31FEFCF5900CED131 /* modify_group_alias.cc */,
@@ -576,6 +581,7 @@
 				2E88EDFA1FD0E02E00229552 /* message.cc in Sources */,
 				2EA952441FCEF88E000921CC /* group.cc in Sources */,
 				2EF1C97C209B006E009E3C03 /* im_http_wrapper.cc in Sources */,
+				904E6154226351990006ECB8 /* load_remote_messages.cc in Sources */,
 				90E79DEE212E657E00B0E7E1 /* get_chatroom_info_result.cc in Sources */,
 				2E0C83A01FD23ECA00FD1D39 /* notify_and_pull_message.cc in Sources */,
 				2E2F5E94201D9EA900AFCB1C /* con_ack_payload.cc in Sources */,

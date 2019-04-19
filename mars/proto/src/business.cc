@@ -63,6 +63,8 @@
 #include "mars/proto/src/Proto/get_friend_request_result.h"
 #include "mars/proto/src/Proto/search_user_request.h"
 #include "mars/proto/src/Proto/search_user_result.h"
+#include "mars/proto/src/Proto/load_remote_messages.h"
+#include "mars/proto/src/Proto/notify_and_pull_message.h"
 #include "mars/proto/stn_callback.h"
 #include "mars/proto/MessageDB.h"
 #include "mars/proto/src/DB2.h"
@@ -129,7 +131,8 @@ const std::string destoryChannelInfoTopic = "CHD";
 const std::string channelSearchTopic = "CHS";
 const std::string channelListenTopic = "CHL";
 const std::string channelPullTopic = "CHP";
-
+const std::string loadRemoteMessagesTopic = "LRM";
+        
 extern std::string gRouteHost;
 extern int gRoutePort;
 extern std::string gHost;
@@ -764,6 +767,57 @@ void recallMessage(long long messageUid, GeneralOperationCallback *callback) {
 
 
     publishTask(buf, new RecallMessagePublishCallback(callback, messageUid), recallMessageTopic, true);
+}
+
+        class LoadRemoteMessagesPublishCallback : public MQTTPublishCallback {
+        public:
+            LoadRemoteMessagesCallback *cb;
+            bool mSave2DB;
+            LoadRemoteMessagesPublishCallback(LoadRemoteMessagesCallback *callback, bool save2DB) : MQTTPublishCallback(), cb(callback), mSave2DB(save2DB) {}
+            
+            void onSuccess(const unsigned char* data, size_t len) {
+                std::list<TMessage> messageList;
+                PullMessageResult result;
+                std::string curUser = app::GetAccountUserName();
+                if (result.unserializeFromPBData((const void *)data, (int)len)) {
+                    bool isBegin = false;
+                    if (result.messages.size() > 100 && mSave2DB) {
+                        isBegin = DB2::Instance()->BEGIN();
+                    }
+                    for (std::list<Message>::iterator it = result.messages.begin(); it != result.messages.end(); it++) {
+                        TMessage tmsg;
+                        StnCallBack::Instance()->converProtoMessage(*it, tmsg, true, curUser);
+                        messageList.push_back(tmsg);
+                        
+                    }
+                    if(isBegin) {
+                        DB2::Instance()->COMMIT();
+                    }
+                    
+                    cb->onSuccess(messageList);
+                } else {
+                    cb->onSuccess(messageList);
+                }
+                delete this;
+            };
+            void onFalure(int errorCode) {
+                cb->onFalure(errorCode);
+                delete this;
+            };
+            virtual ~LoadRemoteMessagesPublishCallback() {
+                
+            }
+        };
+        
+void loadRemoteMessages(const TConversation &conv, long long beforeUid, int count, LoadRemoteMessagesCallback *callback) {
+    LoadRemoteMessages *request = new LoadRemoteMessages();
+    request->conversation.type = (ConversationType)conv.conversationType;
+    request->conversation.target = conv.target;
+    request->conversation.line = conv.line;
+    request->beforeUid = beforeUid;
+    request->count = count;
+    
+    publishTask(request, new LoadRemoteMessagesPublishCallback(callback, true), loadRemoteMessagesTopic, false);
 }
 
 int uploadGeneralMedia(std::string mediaData, int mediaType, UpdateMediaCallback *callback) {
