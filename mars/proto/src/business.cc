@@ -1882,6 +1882,7 @@ void createChannel(const std::string &channelId, const std::string &channelName,
     request->extra = extra;
     request->secret = secret;
     request->callback = cb;
+    request->automatic = 0;
 
     publishTask(request, new CreateChannelPublishCallback(callback, tChannelInfo), createChannelTopic, false);
 }
