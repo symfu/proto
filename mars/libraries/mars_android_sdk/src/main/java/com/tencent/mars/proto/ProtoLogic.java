@@ -291,6 +291,8 @@ public class ProtoLogic {
 
     public static native void clearAllUnreadStatus();
 
+    public static native void clearMessages(int conversationType, String target, int line);
+
     public static native void setMediaMessagePlayed(long messageId);
 
     public static native void removeConversation(int conversationType, String target, int line, boolean clearMsg);

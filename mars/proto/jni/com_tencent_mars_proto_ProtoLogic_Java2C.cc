@@ -1437,6 +1437,12 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_clearAllUnreadStat
     mars::stn::MessageDB::Instance()->ClearAllUnreadStatus();
 }
 
+//public static native void clearMessages(int conversationType, String target, int line);
+JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_clearMessages
+        (JNIEnv *_env, jclass clz, jint type, jstring target, jint line) {
+    mars::stn::MessageDB::Instance()->ClearMessages((int)type, jstringToString(_env, target), (int)line);
+}
+
 //public static native void setMediaMessagePlayed(long messageId);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_setMediaMessagePlayed
 		(JNIEnv *_env, jclass clz, jlong messageId) {
