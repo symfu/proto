@@ -34,6 +34,11 @@ public class ProtoLogic {
         void onRecallMessage(long messageUid);
     }
 
+    public interface ILoadRemoteMessagesCallback {
+        void onSuccess(List<ProtoMessage> messages);
+        void onFailure(int errorCode);
+    }
+
     public interface IGroupInfoUpdateCallback {
         void onGroupInfoUpdated(List<ProtoGroupInfo> updatedGroupInfos);
     }
@@ -278,6 +283,13 @@ public class ProtoLogic {
     public static native ProtoConversationInfo getConversation(int conversationType, String target, int line);
 
     public static native ProtoMessage[] getMessages(int conversationType, String target, int line, long fromIndex, boolean before, int count, String withUser);
+
+//    - (void)getRemoteMessages:(WFCCConversation *)conversation
+//    before:(long long)beforeMessageUid
+//    count:(NSUInteger)count
+//    success:(void(^)(NSArray<WFCCMessage *> *messages))successBlock
+//    error:(void(^)(int error_code))errorBlock
+    public static native ProtoMessage[] getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
 
     public static native ProtoMessage getMessage(long messageId);
 

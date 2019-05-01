@@ -412,6 +412,7 @@ jobject convertProtoChatRoomInfo(JNIEnv *env, jstring chatroomId, const mars::st
 
     return obj;
 }
+
 jobject convertProtoChatRoomMembersInfo(JNIEnv *env, const mars::stn::TChatroomMemberInfo &info) {
 /**
         memberInfo.memberCount = info.memberCount;
@@ -855,6 +856,53 @@ public:
     }
 
     virtual ~IMGeneralOperationCallback() {
+        JNIEnv *env = ScopeJEnv(VarCache::Singleton()->GetJvm()).GetEnv();
+        env->DeleteGlobalRef(mObj);
+    }
+};
+
+class IMLoadRemoteMessagesCallback : public mars::stn::LoadRemoteMessagesCallback {
+private:
+    jobject mObj;
+public:
+    IMLoadRemoteMessagesCallback(jobject obj) : mars::stn::LoadRemoteMessagesCallback(), mObj(obj) {};
+    void onSuccess(const std::list<mars::stn::TMessage> &messageList) {
+         JNIEnv *env = ScopeJEnv(VarCache::Singleton()->GetJvm()).GetEnv();
+         jclass cls = env->GetObjectClass(mObj);
+         if (cls != NULL) {
+             jmethodID nMethodId = env->GetMethodID(cls, "onSuccess", "([Lcn/wildfirechat/model/ProtoMessage;)V");
+             if (env->ExceptionCheck()) {
+                 printf("--%s:exception\n", __FUNCTION__);
+                env->ExceptionClear();
+             }
+             if (nMethodId != NULL) {
+                jobjectArray jo_array = convertProtoMessageList(env, messageList);
+                env->CallVoidMethod(mObj, nMethodId);
+                env->DeleteLocalRef(jo_array);
+             }
+             env->DeleteLocalRef(cls);
+         }
+
+        delete this;
+    }
+    void onFalure(int errorCode) {
+         JNIEnv *env = ScopeJEnv(VarCache::Singleton()->GetJvm()).GetEnv();
+         jclass cls = env->GetObjectClass(mObj);
+         if (cls != NULL) {
+             jmethodID nMethodId = env->GetMethodID(cls, "onFailure", "(I)V");
+             if (env->ExceptionCheck()) {
+                 printf("--%s:exception\n", __FUNCTION__);
+                env->ExceptionClear();
+             }
+             if (nMethodId != NULL) {
+                 env->CallVoidMethod(mObj, nMethodId, (jint)errorCode);
+             }
+             env->DeleteLocalRef(cls);
+         }
+        delete this;
+    }
+
+    virtual ~IMLoadRemoteMessagesCallback() {
         JNIEnv *env = ScopeJEnv(VarCache::Singleton()->GetJvm()).GetEnv();
         env->DeleteGlobalRef(mObj);
     }
@@ -1364,6 +1412,16 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessages
     return convertProtoMessageList(_env, messages);
 }
 
+//public static native ProtoMessage[] getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
+JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_getRemoteMessages
+		(JNIEnv *_env, jclass clz, jint type, jstring target, jint line, jlong beforeMessageUid, jint count, jobject callback) {
+	    mars::stn::TConversation conv;
+        conv.target = jstringToString(_env, target);
+        conv.line = line;
+        conv.conversationType = type;
+
+        mars::stn::loadRemoteMessages(conv, beforeMessageUid, count, new IMLoadRemoteMessagesCallback(callback));
+}
 
 //public static native ProtoMessage getMessage(long messageId);
 JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessage
