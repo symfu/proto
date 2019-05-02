@@ -755,6 +755,10 @@ namespace mars {
                     UpgradeDB4Version5();
                     version = 5;
                 }
+                
+                if(version == 5) {
+                    UpgradeDB5Version6();
+                }
             }
         }
         
@@ -824,6 +828,17 @@ namespace mars {
             
             return SetDBVersion(5);
         }
+        
+        bool DB2::UpgradeDB5Version6() {
+            static const std::string createChannelTableSql = "ALTER TABLE t_friend ADD COLUMN _alias TEXT";
+            if (!executeSql(createChannelTableSql)) {
+                return false;
+            }
+            
+            return SetDBVersion(6);
+        }
+        
+        
         
         bool DB2::CreateDB2Version1() {
             

@@ -113,6 +113,7 @@ const std::string modifyMyInfoTopic = "MMI";
 const std::string AddFriendRequestTopic = "FAR";
 const std::string HandleFriendRequestTopic = "FHR";
 const std::string DeleteFriendTopic = "FDL";
+const std::string SetFriendAliasTopic = "FALS";
 const std::string friendRequestUnreadSyncTopic = "FRUS";
 const std::string BlackListUserTopic = "BLU";
 const std::string UploadDeviceTokenTopic = "UDT";
@@ -1269,6 +1270,13 @@ void deleteFriend(const std::string &userId, GeneralOperationCallback *callback)
     request->id = userId;
     publishTask(request, new GeneralOperationPublishCallback(callback), DeleteFriendTopic, false);
 }
+        
+        void setFriendAlias(const std::string &userId, const std::string &alias, GeneralOperationCallback *callback) {
+            AddFriendRequest *request = new AddFriendRequest();
+            request->targetUid = userId;
+            request->reason = alias;
+            publishTask(request, new GeneralOperationPublishCallback(callback), SetFriendAliasTopic, false);
+        }
 
 void blackListRequest(const std::string &userId, bool blacked, GeneralOperationCallback *callback) {
     BlackUserRequest *request = new BlackUserRequest();
