@@ -2699,9 +2699,9 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_alias");
-            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns);
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, columns, "_friend_uid=?");
 #else
-            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_alias"});
+            std::string sql = db->GetSelectSql(FRIEND_TABLE_NAME, {"_alias"}, "_friend_uid=?");
 #endif
             
             int error = 0;
@@ -2711,6 +2711,7 @@ namespace mars {
             }
             
             std::string alias;
+            db->Bind(statementHandle, friendId, 1);
             if(statementHandle.executeSelect()) {
                 alias = db->getStringValue(statementHandle, 0);
             }
