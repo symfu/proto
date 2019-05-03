@@ -1218,7 +1218,7 @@ public:
             retList.push_back(ff.uid);
           }
 
-          MessageDB::Instance()->InsertFriendOrReplace(ff.uid, ff.state, ff.updateDt);
+          MessageDB::Instance()->InsertFriendOrReplace(ff.uid, ff.state, ff.updateDt, ff.alias);
         }
 
         if(StnCallBack::Instance()->m_getMyFriendsCB) {

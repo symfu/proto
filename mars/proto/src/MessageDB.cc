@@ -2690,6 +2690,34 @@ namespace mars {
             return result;
         }
         
+        std::string MessageDB::GetFriendAlias(const std::string &friendId) {
+            DB2 *db = DB2::Instance();
+            if (!db->isOpened()) {
+                return std::string();
+            }
+            
+#ifdef __ANDROID__
+            std::list<std::string> columns;
+            columns.push_back("_alias");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns);
+#else
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"_alias"});
+#endif
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::string();
+            }
+            
+            std::string alias;
+            if(statementHandle.executeSelect()) {
+                alias = db->getStringValue(statementHandle, 0);
+            }
+            
+            return alias;
+        }
+        
         int64_t MessageDB::getFriendRequestHead() {
             DB2 *db = DB2::Instance();
             if (!db->isOpened()) {
@@ -2787,7 +2815,7 @@ namespace mars {
             return ret;
         }
         
-        long MessageDB::InsertFriendOrReplace(const std::string &friendUid, int state, int64_t timestamp) {
+        long MessageDB::InsertFriendOrReplace(const std::string &friendUid, int state, int64_t timestamp, const std::string &alias) {
             DB2 *db = DB2::Instance();
 
             if (!db->isOpened()) {
@@ -2798,9 +2826,10 @@ namespace mars {
             columns.push_back("_friend_uid");
             columns.push_back("_state");
             columns.push_back("_update_dt");
+            columns.push_back("_alias");
             std::string sql = db->GetInsertSql(FRIEND_TABLE_NAME, columns, true);
 #else
-            std::string sql = db->GetInsertSql(FRIEND_TABLE_NAME, {"_friend_uid", "_state", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(FRIEND_TABLE_NAME, {"_friend_uid", "_state", "_update_dt", "_alias"}, true);
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
@@ -2811,6 +2840,7 @@ namespace mars {
             db->Bind(statementHandle, friendUid, 1);
             db->Bind(statementHandle, state, 2);
             db->Bind(statementHandle, timestamp, 3);
+            db->Bind(statementHandle, alias, 4);
             
             long ret = 0;
             ret = db->ExecuteInsert(statementHandle, &ret);
