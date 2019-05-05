@@ -877,7 +877,7 @@ public:
              }
              if (nMethodId != NULL) {
                 jobjectArray jo_array = convertProtoMessageList(env, messageList);
-                env->CallVoidMethod(mObj, nMethodId);
+                env->CallVoidMethod(mObj, nMethodId, jo_array);
                 env->DeleteLocalRef(jo_array);
              }
              env->DeleteLocalRef(cls);
@@ -1412,7 +1412,7 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessages
     return convertProtoMessageList(_env, messages);
 }
 
-//public static native ProtoMessage[] getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
+//public static native void getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_getRemoteMessages
 		(JNIEnv *_env, jclass clz, jint type, jstring target, jint line, jlong beforeMessageUid, jint count, jobject callback) {
 	    mars::stn::TConversation conv;
@@ -1420,7 +1420,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_getRemoteMessages
         conv.line = line;
         conv.conversationType = type;
 
-        mars::stn::loadRemoteMessages(conv, beforeMessageUid, count, new IMLoadRemoteMessagesCallback(callback));
+        mars::stn::loadRemoteMessages(conv, beforeMessageUid, count, new IMLoadRemoteMessagesCallback(_env->NewGlobalRef(callback)));
 }
 
 //public static native ProtoMessage getMessage(long messageId);
@@ -1693,6 +1693,19 @@ JNIEXPORT jobjectArray JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMyFrien
     std::list<std::string> friendList = mars::stn::MessageDB::Instance()->getMyFriendList(refresh);
 
     return convertStringList(_env, friendList);
+}
+
+//public static native boolean getFriendAlias(String userId);
+JNIEXPORT jstring JNICALL Java_com_tencent_mars_proto_ProtoLogic_getFriendAlias
+		(JNIEnv *_env, jclass clz, jstring userId)  {
+    std::string alias =mars::stn::MessageDB::Instance()->GetFriendAlias(ScopedJstring(_env, userId).GetChar());
+    return cstring2jstring(_env, alias.c_str());
+}
+
+//public static native boolean setFriendAlias(String userId, String alias, IGeneralCallback callback);
+JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_setFriendAlias
+		(JNIEnv *_env, jclass clz, jstring userId, jstring alias, jobject callback)  {
+    mars::stn::setFriendAlias(ScopedJstring(_env, userId).GetChar(),  ScopedJstring(_env, alias).GetChar(), new IMGeneralOperationCallback(_env->NewGlobalRef(callback)));
 }
 
 //    public static native boolean isBlackListed(String userId);

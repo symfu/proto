@@ -35,7 +35,7 @@ public class ProtoLogic {
     }
 
     public interface ILoadRemoteMessagesCallback {
-        void onSuccess(List<ProtoMessage> messages);
+        void onSuccess(ProtoMessage[] messages);
         void onFailure(int errorCode);
     }
 
@@ -289,7 +289,7 @@ public class ProtoLogic {
 //    count:(NSUInteger)count
 //    success:(void(^)(NSArray<WFCCMessage *> *messages))successBlock
 //    error:(void(^)(int error_code))errorBlock
-    public static native ProtoMessage[] getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
+    public static native void getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
 
     public static native ProtoMessage getMessage(long messageId);
 
@@ -323,6 +323,10 @@ public class ProtoLogic {
 
     //- (NSArray<NSString *> *)getMyFriendList:(BOOL)refresh
     public static native String[] getMyFriendList(boolean refresh);
+
+    public static native String getFriendAlias(String userId);
+
+    public static native void setFriendAlias(String userId, String alias, IGeneralCallback callback);
 
     //- (void)loadFriendRequestFromRemote
     public static native void loadFriendRequestFromRemote();
