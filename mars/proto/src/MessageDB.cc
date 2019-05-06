@@ -2856,6 +2856,7 @@ namespace mars {
             if (!db->isOpened()) {
                 return requests;
             }
+
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_target_uid");
@@ -2863,9 +2864,9 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_read_status");
             columns.push_back("_update_dt");
-            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=?");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, columns, "_direction=?", "_id desc");
 #else
-            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, "_direction=?");
+            std::string sql = db->GetSelectSql(FRIEND_REQUEST_TABLE_NAME, {"_target_uid", "_reason", "_status", "_read_status", "_update_dt"}, "_direction=?", "_id desc");
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
