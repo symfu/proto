@@ -56,7 +56,7 @@ public class ProtoLogic {
     }
 
     public interface IFriendListUpdateCallback {
-        void onFriendListUpdated();
+        void onFriendListUpdated(String[] updatedFriendList);
     }
 
     public interface IFriendRequestListUpdateCallback {
@@ -242,9 +242,9 @@ public class ProtoLogic {
         }
     }
 
-    public static void onFriendListUpdated() {
+    public static void onFriendListUpdated(String[] friendList) {
         if (friendListUpdateCallback != null) {
-            friendListUpdateCallback.onFriendListUpdated();
+            friendListUpdateCallback.onFriendListUpdated(friendList);
         }
     }
 

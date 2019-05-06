@@ -568,7 +568,7 @@ public:
 };
 
 
-DEFINE_FIND_STATIC_METHOD(KProto2Java_onFriendListUpdated, KProto2Java, "onFriendListUpdated", "()V")
+DEFINE_FIND_STATIC_METHOD(KProto2Java_onFriendListUpdated, KProto2Java, "onFriendListUpdated", "([Ljava/lang/String;)V")
 class GFLCB : public mars::stn::GetMyFriendsCallback {
 public:
     void onSuccess(std::list<std::string> friendIdList) {
@@ -578,7 +578,8 @@ public:
             JNIEnv *env = scope_jenv.GetEnv();
 
             if(friendIdList.size() > 0) {
-                JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onFriendListUpdated);
+                jobjectArray jFriendIdList = convertStringList(env, friendIdList);
+                JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onFriendListUpdated, jFriendIdList);
             }
         }
     }
