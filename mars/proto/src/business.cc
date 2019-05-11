@@ -170,7 +170,7 @@ public:
             mars::baseevent::OnForeground(true);
 
             //if current use info is null that means he/she first time login, cache friend list for he/she.
-            TUserInfo tuserInfo = MessageDB::Instance()->getUserInfo(mars::app::GetAccountUserName(), false);
+            TUserInfo tuserInfo = MessageDB::Instance()->getUserInfo(mars::app::GetAccountUserName(), "", false);
             if (tuserInfo.uid.empty()) {
                 MessageDB::Instance()->getMyFriendList(false);
             }
@@ -2499,6 +2499,12 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
 //            std::string extra;
             writer.String("extra");
             writer.String(extra);
+            
+            writer.String("friendAlias");
+            writer.String(friendAlias);
+            
+            writer.String("groupAlias");
+            writer.String(groupAlias);
 //            //0 normal; 1 robot; 2 thing;
 //            int type;
             writer.String("type");
@@ -2529,6 +2535,9 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             getValue(value, "updateDt", updateDt);
 //            std::string extra;
             getValue(value, "extra", extra);
+            getValue(value, "friendAlias", friendAlias);
+            getValue(value, "groupAlias", groupAlias);
+            
 //            //0 normal; 1 not started; 2 end
 //            int state;
             getValue(value, "state", state);

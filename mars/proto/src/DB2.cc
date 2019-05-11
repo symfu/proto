@@ -414,16 +414,17 @@ namespace mars {
                 }
             
             
+            if (!tableNameRight.empty()) {
 #ifdef __ANDROID__
-            for (std::list<std::string>::const_iterator it = columnsRight.begin(); it != columnsRight.end(); ++it)
+                for (std::list<std::string>::const_iterator it = columnsRight.begin(); it != columnsRight.end(); ++it) {
 #else
-                for (std::initializer_list<std::string>::const_iterator it = columnsRight.begin(); it != columnsRight.end(); ++it)
+                for (std::initializer_list<std::string>::const_iterator it = columnsRight.begin(); it != columnsRight.end(); ++it) {
 #endif
-                {
                     sql += "r.";
                     sql += *it;
                     sql += ",";
                 }
+            }
             
             sql = sql.substr(0, sql.length() - 1); //remove last ","
             
@@ -432,9 +433,13 @@ namespace mars {
             sql += tableNameLeft;
             sql += " l, ";
             sql += tableNameMiddle;
-            sql += " m, ";
-            sql += tableNameRight;
-            sql += " r ";
+            sql += " m";
+                
+            if (!tableNameRight.empty()) {
+                sql += ", ";
+                sql += tableNameRight;
+                sql += " r";
+            }
             
             if (where.size()) {
                 sql += " where ";

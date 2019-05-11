@@ -2366,39 +2366,34 @@ namespace mars {
             return;
         }
         
-        TUserInfo MessageDB::getUserInfo(const std::string &userId, bool refresh) {
+        TUserInfo MessageDB::getUserInfo(const std::string &userId, const std::string &groupId, bool refresh) {
             DB2 *db = DB2::Instance();
             TUserInfo ui;
             if (!db->isOpened()) {
                 return ui;
             }
 
-#ifdef __ANDROID__
-            std::list<std::string> columns;
-            columns.push_back("_uid");
-            columns.push_back( "_name");
-            columns.push_back("_display_name");
-            columns.push_back("_portrait");
-            columns.push_back("_gender");
-            columns.push_back("_mobile");
-            columns.push_back("_email");
-            columns.push_back("_address");
-            columns.push_back("_company");
-            columns.push_back("_social");
-            columns.push_back("_extra");
-            columns.push_back("_type");
-            columns.push_back("_update_dt");
-            std::string sql = db->GetSelectSql(USER_TABLE_NAME, columns, "_uid=?");
-#else
-            std::string sql = db->GetSelectSql(USER_TABLE_NAME, {"_uid",  "_name", "_display_name",  "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_type", "_update_dt"}, "_uid=?");
-#endif
+            std::string sql;
+            if (groupId.empty()) {
+                sql = "select l._uid,l._name,l._display_name,l._portrait,l._gender,l._mobile,l._email,l._address,l._company,l._social,l._extra,l._type,l._update_dt,m._alias from t_user as l left join t_friend as m on l._uid=m._friend_uid where l._uid = ? limit 1";
+            } else {
+                sql = "select l._uid,l._name,l._display_name,l._portrait,l._gender,l._mobile,l._email,l._address,l._company,l._social,l._extra,l._type,l._update_dt,m._alias,r._alias from t_user as l left join t_friend as m on l._uid=m._friend_uid left join (select _mid, _alias from t_group_member where _gid = ?) as r  on l._uid=r._mid where l._uid = ? limit 1";
+            }
+            
+            
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
             if (error != 0) {
                 return ui;
             }
             
-            db->Bind(statementHandle, userId, 1);
+            int index = 1;
+            if (!groupId.empty()) {
+                db->Bind(statementHandle, groupId, index++);
+            }
+            
+            db->Bind(statementHandle, userId, index++);
+            
             std::list<std::pair<std::string, int64_t>> refreshReqList;
             
             if (statementHandle.executeSelect()) {
@@ -2415,6 +2410,10 @@ namespace mars {
                 ui.extra = db->getStringValue(statementHandle, 10);
                 ui.type = db->getIntValue(statementHandle, 11);
                 ui.updateDt = db->getBigIntValue(statementHandle, 12);
+                ui.friendAlias = db->getStringValue(statementHandle, 13);
+                if (!groupId.empty()) {
+                    ui.groupAlias = db->getStringValue(statementHandle, 14);
+                }
             } else {
                 ui.updateDt = 0;
             }
