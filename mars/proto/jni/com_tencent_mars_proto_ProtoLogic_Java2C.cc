@@ -317,6 +317,10 @@ jobject convertProtoUserInfo(JNIEnv *env, const mars::stn::TUserInfo &tUserInfo)
 //    userInfo.extra = [NSString stringWithUTF8String:tui.extra.c_str()];
     SetObjectValue_String(env, obj, juserInfo, "setExtra", tUserInfo.extra.c_str());
 
+    SetObjectValue_String(env, obj, juserInfo, "setFriendAlias", tUserInfo.friendAlias.c_str());
+
+    SetObjectValue_String(env, obj, juserInfo, "setGroupAlias", tUserInfo.groupAlias.c_str());
+
 //    userInfo.updateDt = tui.updateDt;
     SetObjectValue_LongLong(env, obj, juserInfo, "setUpdateDt", tUserInfo.updateDt);
 
@@ -1816,8 +1820,8 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_deleteFriend
 
 //public static native ProtoUserInfo getUserInfo(String userId, boolean refresh);
 JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getUserInfo
-		(JNIEnv *_env, jclass clz, jstring userId, jboolean refresh) {
-    mars::stn::TUserInfo tui = mars::stn::MessageDB::Instance()->getUserInfo(ScopedJstring(_env, userId).GetChar(), refresh);
+		(JNIEnv *_env, jclass clz, jstring userId, jstring groupId, jboolean refresh) {
+    mars::stn::TUserInfo tui = mars::stn::MessageDB::Instance()->getUserInfo(ScopedJstring(_env, userId).GetChar(), ScopedJstring(_env, groupId).GetChar(), refresh);
     if (!tui.uid.empty()) {
         jobject userInfo = convertProtoUserInfo(_env, tui);
         return userInfo;
