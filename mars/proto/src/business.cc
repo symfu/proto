@@ -2459,6 +2459,8 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             getValue(value, "type", type);
 //            int64_t updateDt;
             getValue(value, "updateDt", updateDt);
+            getValue(value, "friendAlias", friendAlias);
+            getValue(value, "groupAlias", groupAlias);
         }
 
         void TUserInfo::Serialize(void *pwriter) const {
@@ -2535,8 +2537,7 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             getValue(value, "updateDt", updateDt);
 //            std::string extra;
             getValue(value, "extra", extra);
-            getValue(value, "friendAlias", friendAlias);
-            getValue(value, "groupAlias", groupAlias);
+
             
 //            //0 normal; 1 not started; 2 end
 //            int state;
