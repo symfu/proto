@@ -378,6 +378,7 @@ public class ProtoLogic {
 
     //- (WFCCUserInfo *)getUserInfo:(NSString *)userId refresh:(BOOL)refresh
     public static native ProtoUserInfo getUserInfo(String userId, String groupId, boolean refresh);
+    public static native ProtoUserInfo[] getUserInfos(List<String> userIds, String groupId);
 
     //- (void)uploadMedia:(NSData *)mediaData mediaType:(WFCCMediaType)mediaType success:(void(^)(NSString *remoteUrl))successBlock error:(void(^)(int error_code))errorBlock
     public static native void uploadMedia(byte[] data, int mediaType, IUploadMediaCallback callback);

@@ -1829,6 +1829,23 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getUserInfo
     return NULL;
 }
 
+//public static native ProtoUserInfo[] getUserInfos(List<String> userIds, String groupId);
+JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getUserInfos
+		(JNIEnv *_env, jclass clz, jobjectArray userIds, jstring groupId) {
+    std::list<std::string> uids = jarrayToStringList(_env, userIds);
+    std::list<mars::stn::TUserInfo> tuis = mars::stn::MessageDB::Instance()->getUserInfos(uids, ScopedJstring(_env, groupId).GetChar());
+
+    int i = 0;
+    jobjectArray jo_array = _env->NewObjectArray(tuis.size(), (jclass) g_objUserInfo, 0);
+    for (std::list<mars::stn::TUserInfo>::iterator it = tuis.begin(); it != tuis.end(); it++) {
+        jobject userInfo = convertProtoUserInfo(_env, *it);
+        _env->SetObjectArrayElement(jo_array, i++, userInfo);
+        _env->DeleteLocalRef(userInfo);
+    }
+
+    return jo_array;
+}
+
 class GeneralUpdateMediaCallback : public mars::stn::UpdateMediaCallback {
 private:
     jobject mObj;

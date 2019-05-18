@@ -2425,6 +2425,81 @@ namespace mars {
             }
             return ui;
         }
+        std::list<TUserInfo> MessageDB::getUserInfos(const std::list<std::string> &userIds, const std::string &groupId) {
+            DB2 *db = DB2::Instance();
+            if (!db->isOpened()) {
+                return std::list<TUserInfo>();
+            }
+            
+            std::string sql;
+            std::string uidStr;
+            for (std::list<std::string>::const_iterator it = userIds.begin(); it != userIds.end();) {
+                std::string userId = *it;
+                uidStr += "'";
+                uidStr += userId;
+                uidStr += "'";
+                ++it;
+                if (it != userIds.end()) {
+                    uidStr += ",";
+                }
+            }
+            if (groupId.empty()) {
+                sql = "select l._uid,l._name,l._display_name,l._portrait,l._gender,l._mobile,l._email,l._address,l._company,l._social,l._extra,l._type,l._update_dt,m._alias from t_user as l left join t_friend as m on l._uid=m._friend_uid where l._uid in (" + uidStr + ")";
+            } else {
+                sql = "select l._uid,l._name,l._display_name,l._portrait,l._gender,l._mobile,l._email,l._address,l._company,l._social,l._extra,l._type,l._update_dt,m._alias,r._alias from t_user as l left join t_friend as m on l._uid=m._friend_uid left join (select _mid, _alias from t_group_member where _gid = ?) as r  on l._uid=r._mid where l._uid in (" + uidStr + ")";
+            }
+            
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            if (error != 0) {
+                return std::list<TUserInfo>();;
+            }
+            
+            int index = 1;
+            if (!groupId.empty()) {
+                db->Bind(statementHandle, groupId, index++);
+            }
+            
+            std::list<TUserInfo> out;
+            
+            std::list<std::string> needRefreshList = userIds;
+            while (statementHandle.executeSelect()) {
+                TUserInfo ui;
+                ui.uid = db->getStringValue(statementHandle, 0);
+                ui.name = db->getStringValue(statementHandle, 1);
+                ui.displayName = db->getStringValue(statementHandle, 2);
+                ui.portrait = db->getStringValue(statementHandle, 3);
+                ui.gender = db->getIntValue(statementHandle, 4);
+                ui.mobile = db->getStringValue(statementHandle, 5);
+                ui.email = db->getStringValue(statementHandle, 6);
+                ui.address = db->getStringValue(statementHandle, 7);
+                ui.company = db->getStringValue(statementHandle, 8);
+                ui.social = db->getStringValue(statementHandle, 9);
+                ui.extra = db->getStringValue(statementHandle, 10);
+                ui.type = db->getIntValue(statementHandle, 11);
+                ui.updateDt = db->getBigIntValue(statementHandle, 12);
+                ui.friendAlias = db->getStringValue(statementHandle, 13);
+                if (!groupId.empty()) {
+                    ui.groupAlias = db->getStringValue(statementHandle, 14);
+                }
+                out.insert(out.end(), ui);
+                needRefreshList.remove(ui.uid);
+            }
+            
+            if (!needRefreshList.empty()) {
+                std::list<std::pair<std::string, int64_t>> reqList;
+                for (std::list<std::string>::iterator it = needRefreshList.begin(); it != needRefreshList.end(); ++it) {
+                    reqList.push_back(std::pair<std::string, int64_t>(*it, 0));
+                    
+                    TUserInfo ui;
+                    ui.uid = *it;
+                    out.insert(out.end(), ui);
+                }
+                reloadUserInfoFromRemote(reqList);
+            }
+            return out;
+        }
         /*
          Modify_DisplayName = 0,
          Modify_Portrait = 1,
