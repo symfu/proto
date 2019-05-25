@@ -2490,7 +2490,9 @@ namespace mars {
             if (!needRefreshList.empty()) {
                 std::list<std::pair<std::string, int64_t>> reqList;
                 for (std::list<std::string>::iterator it = needRefreshList.begin(); it != needRefreshList.end(); ++it) {
-                    reqList.push_back(std::pair<std::string, int64_t>(*it, 0));
+                    if (reqList.size() < 500) {
+                        reqList.push_back(std::pair<std::string, int64_t>(*it, 0));
+                    }
                     
                     TUserInfo ui;
                     ui.uid = *it;

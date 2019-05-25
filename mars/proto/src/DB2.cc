@@ -269,6 +269,8 @@ namespace mars {
             
             std::string DB2Path = path + "/" + DB2_NAME;
             
+            xerror2("open db %s",DB2Path.c_str());
+            
             closeDB();
             sqlite3_shutdown();
             int rc = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
@@ -297,6 +299,8 @@ namespace mars {
                 closeDB();
                 return;
             }
+            
+            xerror2("open db done");
             opened = true;
         }
         
