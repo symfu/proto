@@ -2239,7 +2239,7 @@ namespace mars {
                 member.memberId = db->getStringValue(statementHandle, 1);
                 member.alias = db->getStringValue(statementHandle, 2);
                 member.type = db->getIntValue(statementHandle, 3);
-                member.updateDt = db->getBigIntValue(statementHandle, 10);
+                member.updateDt = db->getBigIntValue(statementHandle, 4);
                 resultList.push_back(member);
                 if (member.updateDt > maxDt) {
                     maxDt = member.updateDt;
@@ -2285,7 +2285,7 @@ namespace mars {
                 member.memberId = db->getStringValue(statementHandle, 1);
                 member.alias = db->getStringValue(statementHandle, 2);
                 member.type = db->getIntValue(statementHandle, 3);
-                member.updateDt = db->getBigIntValue(statementHandle, 10);
+                member.updateDt = db->getBigIntValue(statementHandle, 4);
             }
             
             return member;
