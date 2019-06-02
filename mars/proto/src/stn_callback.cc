@@ -28,6 +28,7 @@
 #include "mars/proto/src/DB2.h"
 #include <sstream>
 #include <map>
+#include <set>
 #include "mars/comm/http.h"
 #include "mars/app/app.h"
 #include "mars/app/app_logic.h"
@@ -284,6 +285,8 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                     if (result.messages.size() > 100 && mPullType != Pull_ChatRoom) {
                         isBegin = DB2::Instance()->BEGIN();
                     }
+                    std::set<std::string> needUpdateGroup;
+                    std::set<std::string> needUpdateGroupMember;
                     for (std::list<Message>::iterator it = result.messages.begin(); it != result.messages.end(); it++) {
                         TMessage tmsg;
                         StnCallBack::Instance()->converProtoMessage(*it, tmsg, true, curUser);
@@ -304,11 +307,11 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                                 || tmsg.content.type == MESSAGE_CONTENT_TYPE_KICKOF_GROUP_MEMBER
                                 || tmsg.content.type == MESSAGE_CONTENT_TYPE_TRANSFER_GROUP_OWNER
                                 || tmsg.content.type == MESSAGE_CONTENT_TYPE_MODIFY_GROUP_ALIAS) {
-                                MessageDB::Instance()->GetGroupInfo(tmsg.target, true);
-                                MessageDB::Instance()->GetGroupMembers(tmsg.target, true);
+                                needUpdateGroup.insert(tmsg.target);
+                                needUpdateGroupMember.insert(tmsg.target);
                             } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_NAME
                                        || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_PORTRAIT) {
-                                MessageDB::Instance()->GetGroupInfo(tmsg.target, true);
+                                needUpdateGroup.insert(tmsg.target);
                             } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_QUIT_GROUP
                                        || tmsg.content.type == MESSAGE_CONTENT_TYPE_DISMISS_GROUP) {
                                 MessageDB::Instance()->RemoveGroupAndMember(tmsg.target);
@@ -317,6 +320,15 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                             }
                         }
                     }
+                    
+                    for (std::set<std::string>::iterator it = needUpdateGroup.begin(); it != needUpdateGroup.end(); it++) {
+                        MessageDB::Instance()->GetGroupInfo(*it, true);
+                    }
+                    
+                    for (std::set<std::string>::iterator it = needUpdateGroupMember.begin(); it != needUpdateGroupMember.end(); it++) {
+                        MessageDB::Instance()->GetGroupMembers(*it, true);
+                    }
+                    
                     if(isBegin) {
                         DB2::Instance()->COMMIT();
                     }
