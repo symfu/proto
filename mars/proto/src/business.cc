@@ -73,6 +73,7 @@
 #include "mars/app/app.h"
 #include <iostream>
 #include "comm/crypt/ibase64.h"
+#include "mars/comm/xlogger/xlogger.h"
 
 #if WFCHAT_PROTO_SERIALIZABLE
 #include "rapidjson/rapidjson.h"
@@ -739,17 +740,41 @@ int (*sendMessage)(TMessage &tmsg, SendMsgCallback *callback, int expireDuration
 
         char * buffer;
         long size;
+		xerror2("1");
+		xerror2("send media message, media path %0", tmsg.content.localMediaPath);
+//		return;
+#ifdef _WIN32
+		xerror2("2");
+		DWORD dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, tmsg.content.localMediaPath.c_str(), -1, NULL, 0);
+		xerror2("3");
+		wchar_t * wstrUnicoe = new wchar_t[dwMinSize];
+		xerror2("4");
+		wmemset(wstrUnicoe, 0, dwMinSize);
+		xerror2("5");
+		dwMinSize = ::MultiByteToWideChar(CP_UTF8, 0, tmsg.content.localMediaPath.c_str(), -1, wstrUnicoe, dwMinSize);
+		xerror2("6");
+		std::ifstream file(wstrUnicoe, std::ios::in | std::ios::binary | std::ios::ate);
+		xerror2("7");
+		free(wstrUnicoe);
+		xerror2("8");
+#else
         std::ifstream file (tmsg.content.localMediaPath.c_str(), std::ios::in|std::ios::binary|std::ios::ate);
+#endif
+		xerror2("9");
         size = file.tellg();
+		xerror2("10");
         file.seekg (0, std::ios::beg);
+		xerror2("11");
         buffer = new char [size];
+		xerror2("12");
         file.read (buffer, size);
+		xerror2("13");
         file.close();
-
+		xerror2("14");
         std::string md(buffer, size);
-
+		xerror2("15");
         delete [] buffer;
-
+		xerror2("16");
         mars::stn::MQTTPublishTask *publishTask = new mars::stn::MQTTPublishTask(new GetUploadTokenCallback(new UploadMediaForSendCallback(callback, tmsg, id, expireDuration), md));
         publishTask->topic = getQiniuUploadTokenTopic;
         publishTask->length = 1;
