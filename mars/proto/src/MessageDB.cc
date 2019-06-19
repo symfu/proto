@@ -937,7 +937,7 @@ namespace mars {
             columns.push_back("count(*)");
             columns.push_back("sum(_status=?)");
             columns.push_back("sum(_status=?)");
-            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=? and _status=?");
+            std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=? and _status in (?, ?, ?)");
 #else
             std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME, {"count(*), sum(_status=?), sum(_status=?)"}, "_conv_type=? and _conv_line=? and _conv_target=? and _status in (?, ?, ?)");
 #endif
