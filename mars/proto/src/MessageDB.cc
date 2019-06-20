@@ -794,7 +794,7 @@ namespace mars {
                 conv.isSilent = db->getIntValue(statementHandle, 5);
                 conv.timestamp = db->getBigIntValue(statementHandle, 6);
                 
-              std::list<TMessage> lastMessages = GetMessages(conv.conversationType, conv.target, conv.line, std::list<int>(), true, 1, INT_MAX, "");
+              std::list<TMessage> lastMessages = GetMessages(conv.conversationType, conv.target, conv.line, std::list<int>(), true, 1, 0, "");
                 if (lastMessages.size() > 0) {
                     conv.lastMessage = *lastMessages.begin();
                 }
@@ -1051,14 +1051,18 @@ namespace mars {
             if (!withUser.empty()) {
                 where += " and ((_direction=0 and (_to='' or _to=?)) or (_from=?))";
             }
+            int64_t ts = 0;
             
             if (old) {
-              if (startPoint == 0) {
-                startPoint = INT_MAX;
-              }
-                where += " and _id < ?";
+                where += " and _timestamp < ?";
             } else {
-                where += " and _id > ?";
+                where += " and _timestamp > ?";
+            }
+            if (startPoint == 0) {
+                ts = LONG_MAX;
+            } else {
+                TMessage startMsg = GetMessageById(startPoint);
+                ts = startMsg.timestamp;
             }
             
             if (contentTypes.size() > 0) {
@@ -1145,7 +1149,7 @@ namespace mars {
                 db->Bind(statementHandle, withUser, index++);
                 db->Bind(statementHandle, withUser, index++);
             }
-            db->Bind(statementHandle, (int)startPoint, index++);
+            db->Bind(statementHandle, ts, index++);
             
             std::list<TMessage> result;
             
@@ -1232,13 +1236,18 @@ namespace mars {
                 where += " _from=? and";
             }
             
+            int64_t ts = 0;
+            
             if (desc) {
-                if (startPoint == 0) {
-                    startPoint = INT_MAX;
-                }
-                where += " _id < ?";
+                where += " and _timestamp < ?";
             } else {
-                where += " _id > ?";
+                where += " and _timestamp > ?";
+            }
+            if (startPoint == 0) {
+                ts = LONG_MAX;
+            } else {
+                TMessage startMsg = GetMessageById(startPoint);
+                ts = startMsg.timestamp;
             }
             
             if (contentTypes.size() > 0) {
@@ -1321,7 +1330,7 @@ namespace mars {
             if (!withUser.empty()) {
                 db->Bind(statementHandle, withUser, index++);
             }
-            db->Bind(statementHandle, startPoint, index++);
+            db->Bind(statementHandle, ts, index++);
             
             std::list<TMessage> result;
             
@@ -1410,13 +1419,18 @@ namespace mars {
                 where += " _from=? and";
             }
             
+            int64_t ts = 0;
+            
             if (desc) {
-                if (startPoint == 0) {
-                    startPoint = INT_MAX;
-                }
-                where += " _id < ?";
+                where += " and _timestamp < ?";
             } else {
-                where += " _id > ?";
+                where += " and _timestamp > ?";
+            }
+            if (startPoint == 0) {
+                ts = LONG_MAX;
+            } else {
+                TMessage startMsg = GetMessageById(startPoint);
+                ts = startMsg.timestamp;
             }
             
             std::string orderBy;
@@ -1483,7 +1497,7 @@ namespace mars {
             if (!withUser.empty()) {
                 db->Bind(statementHandle, withUser, index++);
             }
-            db->Bind(statementHandle, startPoint, index++);
+            db->Bind(statementHandle, ts, index++);
             
             std::list<TMessage> result;
             
