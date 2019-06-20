@@ -36,6 +36,11 @@
 #include <sys/time.h>
 #include <time.h>
 
+#include "gzip/decompress.hpp"
+#include "gzip/utils.hpp"
+#include "gzip/version.hpp"
+
+
 void (*shortlink_progress)(uint32_t task_id, uint32_t writed, uint32_t total) =
 [](uint32_t task_id, uint32_t writed, uint32_t total) {
     mars::stn::Task task = mars::stn::GetTask(task_id);
@@ -653,16 +658,24 @@ int StnCallBack::Buf2Resp(uint32_t _taskid, void* const _user_context, const Aut
       xinfo2(TSF"PROTO -> TASK(%0) has response", task->description());
       xinfo2(TSF"PROTO -> TASK errorcode:%0", _error_code);
     const MQTTPublishTask *publishTask = (const MQTTPublishTask *)_user_context;
-      if (_error_code == 0) {
+      if (_error_code == 0 || _error_code == 255) {
           if (_inbuffer.Length() < 1) {
               if(publishTask->m_callback)
                   publishTask->m_callback->onFalure(kEcProtoCorruptData);
           } else {
               unsigned char *p = (unsigned char *)_inbuffer.Ptr();
               xinfo2(TSF"PROTO -> TASK business code:%0(0success, otherwise failure)", *p);
-              if (*p == 0) {
+              if (*p == 0 || *p == 255) {
+                  if (*p == 255) {
+                      unsigned char *pData = (unsigned char *)(_inbuffer.Ptr()) + 1;
+                      unsigned int length = (unsigned int)(_inbuffer.Length()-1);
+                      std::string strData = gzip::decompress((char*)pData, length, NULL);
+                      if(publishTask->m_callback)
+                          publishTask->m_callback->onSuccess((const unsigned char *)strData.c_str(), strData.length());
+                  } else {
                   if(publishTask->m_callback)
-                  publishTask->m_callback->onSuccess((const unsigned char *)(_inbuffer.Ptr()) + 1, (unsigned int)(_inbuffer.Length()-1));
+                      publishTask->m_callback->onSuccess((const unsigned char *)(_inbuffer.Ptr()) + 1, (unsigned int)(_inbuffer.Length()-1));
+                  }
               } else {
                   if(publishTask->m_callback)
                       publishTask->m_callback->onFalure(*p);

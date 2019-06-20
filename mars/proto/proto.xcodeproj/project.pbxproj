@@ -212,6 +212,9 @@
 		2EF1C97B209B006D009E3C03 /* im_http_wrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = im_http_wrapper.h; sourceTree = "<group>"; };
 		2F31C10B21718765001AD501 /* aes_crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes_crypt.h; sourceTree = "<group>"; };
 		2F31C10C21718766001AD501 /* aes_crypt.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aes_crypt.cc; sourceTree = "<group>"; };
+		2F3FD9F522994D460046FD11 /* version.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = version.hpp; sourceTree = "<group>"; };
+		2F3FD9F622994D460046FD11 /* utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
+		2F3FD9F722994D460046FD11 /* decompress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = decompress.hpp; sourceTree = "<group>"; };
 		2F48C9C0214D11A70092B167 /* int64_buf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = int64_buf.h; sourceTree = "<group>"; };
 		2F48C9C1214D11A70092B167 /* int64_buf.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = int64_buf.cc; sourceTree = "<group>"; };
 		2F48C9C7214D1E230092B167 /* notify_recall_message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = notify_recall_message.h; sourceTree = "<group>"; };
@@ -271,6 +274,7 @@
 		2E369EFB1FAE913600AAB783 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				2F3FD9F222994D460046FD11 /* gzip */,
 				901FE0FB21D9B79200F0DA33 /* sqlite3.c */,
 				901FE0FA21D9B79200F0DA33 /* sqlite3.h */,
 				2E369EFC1FAE913600AAB783 /* business.cc */,
@@ -466,6 +470,16 @@
 				2ED623081FCCF3E200182CD6 /* stringpool.h */,
 			);
 			path = pbc;
+			sourceTree = "<group>";
+		};
+		2F3FD9F222994D460046FD11 /* gzip */ = {
+			isa = PBXGroup;
+			children = (
+				2F3FD9F522994D460046FD11 /* version.hpp */,
+				2F3FD9F622994D460046FD11 /* utils.hpp */,
+				2F3FD9F722994D460046FD11 /* decompress.hpp */,
+			);
+			path = gzip;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
