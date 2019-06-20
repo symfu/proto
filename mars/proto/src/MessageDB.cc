@@ -514,9 +514,9 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_timestamp");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=?  and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=?");
 #endif
             int error = 0;
             RecyclableStatement updateStatementHandle(db, sql, error);
@@ -526,8 +526,8 @@ namespace mars {
             
             db->Bind(updateStatementHandle, timestamp, 1);
             db->Bind(updateStatementHandle, conversationType, 2);
-            db->Bind(updateStatementHandle, target, 3);
-            db->Bind(updateStatementHandle, line, 4);
+            db->Bind(updateStatementHandle, line, 3);
+            db->Bind(updateStatementHandle, target, 4);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -566,9 +566,9 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_istop");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_istop"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_istop"}, "_conv_type=?  and _conv_line=? and _conv_target=?");
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
@@ -578,8 +578,8 @@ namespace mars {
             
             db->Bind(statementHandle, istop, 1);
             db->Bind(statementHandle, conversationType, 2);
-            db->Bind(statementHandle, target, 3);
-            db->Bind(statementHandle, line, 4);
+            db->Bind(statementHandle, line, 3);
+            db->Bind(statementHandle, target, 4);
             int count = db->ExecuteUpdate(statementHandle);
             
             if (count > 0) {
@@ -616,9 +616,9 @@ namespace mars {
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_issilent");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_issilent"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_issilent"}, "_conv_type=? and _conv_line=? and _conv_target=?");
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
@@ -628,8 +628,8 @@ namespace mars {
             
             db->Bind(statementHandle, issilent, 1);
             db->Bind(statementHandle, conversationType, 2);
-            db->Bind(statementHandle, target, 3);
-            db->Bind(statementHandle, line, 4);
+            db->Bind(statementHandle, line, 3);
+            db->Bind(statementHandle, target, 4);
             int count = db->ExecuteUpdate(statementHandle);
             
             if (count > 0) {
@@ -668,9 +668,9 @@ namespace mars {
             std::list<std::string> columns;
             columns.push_back("_draft");
             columns.push_back("_timestamp");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=?  and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_timestamp"}, "_conv_type=?  and _conv_line=? and _conv_target=?");
 #endif
             int error = 0;
             RecyclableStatement updateStatementHandle(db, sql, error);
@@ -681,8 +681,8 @@ namespace mars {
             db->Bind(updateStatementHandle, draft, 1);
             db->Bind(updateStatementHandle, ((int64_t)time(NULL))*1000, 2);
             db->Bind(updateStatementHandle, conversationType, 3);
-            db->Bind(updateStatementHandle, target, 4);
-            db->Bind(updateStatementHandle, line, 5);
+            db->Bind(updateStatementHandle, line, 4);
+            db->Bind(updateStatementHandle, target, 5);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -820,9 +820,9 @@ namespace mars {
             columns.push_back("_istop");
             columns.push_back("_issilent");
             columns.push_back("_timestamp");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=?");
 #endif
             int error = 0;
             RecyclableStatement updateStatementHandle(db, sql, error);
@@ -895,9 +895,9 @@ namespace mars {
             columns.push_back("_istop");
             columns.push_back("_issilent");
             columns.push_back("_timestamp");
-            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_target=? and _conv_line=?");
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=?");
 #else
-            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, {"_draft",  "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=?"/* and _timestamp > 0"*/);
+            std::string sql = db->GetSelectSql(CONVERSATION_TABLE_NAME, {"_draft",  "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=?"/* and _timestamp > 0"*/);
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
@@ -906,8 +906,8 @@ namespace mars {
             }
             
             db->Bind(statementHandle, conversationType, 1);
-            db->Bind(statementHandle, target, 2);
-            db->Bind(statementHandle, line, 3);
+            db->Bind(statementHandle, line, 2);
+            db->Bind(statementHandle, target, 3);
             
             conv.target = target;
             conv.conversationType = conversationType;
@@ -1046,7 +1046,7 @@ namespace mars {
           if (!db->isOpened()) {
             return std::list<TMessage>();
           }
-            std::string where = "_conv_type=? and _conv_target=? and _conv_line=?";
+            std::string where = "_conv_type=? and _conv_line=? and _conv_target=?";
             
             if (!withUser.empty()) {
                 where += " and ((_direction=0 and (_to='' or _to=?)) or (_from=?))";
@@ -1139,8 +1139,8 @@ namespace mars {
             
             int index = 1;
             db->Bind(statementHandle, conversationType, index++);
-            db->Bind(statementHandle, target, index++);
             db->Bind(statementHandle, line, index++);
+            db->Bind(statementHandle, target, index++);
             if (!withUser.empty()) {
                 db->Bind(statementHandle, withUser, index++);
                 db->Bind(statementHandle, withUser, index++);
@@ -2077,7 +2077,7 @@ namespace mars {
                                                                                    "_direction",
                                                                                    "_status",
                                                                                    "_uid",
-                                                                                   "_timestamp"}, "_conv_type=? and _conv_target=? and _conv_line=? and _cont_searchable like ?", "_timestamp desc", limit);
+                                                                                   "_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=? and _cont_searchable like ?", "_timestamp desc", limit);
 #endif
             
             int error = 0;
