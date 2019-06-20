@@ -835,8 +835,8 @@ namespace mars {
             db->Bind(updateStatementHandle, 0, 3);
             db->Bind(updateStatementHandle, 0, 4);
             db->Bind(updateStatementHandle, conversationType, 5);
-            db->Bind(updateStatementHandle, target, 6);
-            db->Bind(updateStatementHandle, line, 7);
+            db->Bind(updateStatementHandle, line, 6);
+            db->Bind(updateStatementHandle, target, 7);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             if (count > 0) {
@@ -2061,8 +2061,8 @@ namespace mars {
                                                                                {
                                                                                    "_id",
                                                                                    "_conv_type",
-                                                                                   "_conv_line",
                                                                                    "_conv_target",
+                                                                                   "_conv_line",
                                                                                    "_from",
                                                                                    "_to",
                                                                                    "_cont_type",
