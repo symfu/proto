@@ -801,7 +801,8 @@ void recallMessage(long long messageUid, GeneralOperationCallback *callback) {
                     if(isBegin) {
                         DB2::Instance()->COMMIT();
                     }
-                    
+
+                    messageList.reverse();
                     cb->onSuccess(messageList);
                 } else {
                     cb->onSuccess(messageList);
