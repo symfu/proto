@@ -1422,9 +1422,9 @@ namespace mars {
             int64_t ts = 0;
             
             if (desc) {
-                where += " and _timestamp < ?";
+                where += " _timestamp < ?";
             } else {
-                where += " and _timestamp > ?";
+                where += " _timestamp > ?";
             }
             if (startPoint == 0) {
                 ts = LONG_MAX;
@@ -1912,6 +1912,62 @@ namespace mars {
             }
             
             return false;
+        }
+        
+        bool MessageDB::ClearUnreadStatus(const std::list<int> &conversationTypes, const std::list<int> lines) {
+            DB2 *db = DB2::Instance();
+            if (!db->isOpened()) {
+                return false;
+            }
+            std::string where;
+            if (conversationTypes.size() > 0) {
+                where += "_conv_type in (";
+                for (std::list<int>::const_iterator it = conversationTypes.begin(); it != conversationTypes.end(); it++) {
+                    char str[255];
+                    memset(str, 0, 255);
+                    sprintf(str, "%d", *it);
+                    where += str;
+                    where += ",";
+                }
+                where = where.substr(0, where.size()-1);
+                where += ") and ";
+            }
+            
+            
+            if (lines.size() > 0) {
+                where += "_conv_line in (";
+                for (std::list<int>::const_iterator it = lines.begin(); it != lines.end(); it++) {
+                    char str[255];
+                    memset(str, 0, 255);
+                    sprintf(str, "%d", *it);
+                    where += str;
+                    where += ",";
+                }
+                where = where.substr(0, where.size()-1);
+                where += ") and ";
+            }
+            
+            where += " _status in (?, ?, ?)";
+            
+#ifdef __ANDROID__
+            std::list<std::string> columns;
+            columns.push_back("_status");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, where);
+#else
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_status"}, where);
+#endif
+            int error = 0;
+            RecyclableStatement updateStatementHandle(db, sql, error);
+            if (error != 0) {
+                return false;
+            }
+            
+            db->Bind(updateStatementHandle, Message_Status_Unread, 1);
+            db->Bind(updateStatementHandle, Message_Status_Mentioned, 2);
+            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 3);
+            int count = db->ExecuteUpdate(updateStatementHandle);
+            
+            return count > 0;
         }
         
         int64_t MessageDB::getConversationReadMaxDt(int conversationType, const std::string &target, int line) {
