@@ -22,6 +22,7 @@ namespace mars {
             return "";
         }
         RecyclableStatement::RecyclableStatement(DB2 *db2, const std::string &sql, int &error) : m_db(db2->m_db), m_stmt(NULL), m_sql(sql) {
+            xinfo2(TSF"prepare sql:%0", sql);
             if (m_db == NULL) {
                 error = -1;
                 return;
@@ -30,7 +31,7 @@ namespace mars {
             error = sqlite3_prepare_v2(m_db, m_sql.c_str(), -1, &m_stmt, NULL);
             if (error != SQLITE_OK)
             {
-                xerror2("prepare db error:%d info:%s sql:%s", error, getError(m_db), m_sql.c_str());
+                xerror2(TSF"prepare db error:%0 info:%1 sql:%2", error, getError(m_db), m_sql.c_str());
                 error = sqlite3_finalize(m_stmt);
                 m_stmt = NULL;
                 return ;
@@ -39,6 +40,7 @@ namespace mars {
         }
         
         RecyclableStatement::RecyclableStatement(sqlite3 *db, const std::string &sql, int &error) : m_db(db), m_stmt(NULL), m_sql(sql) {
+            xinfo2(TSF"prepare sql:%0", sql);
             if (m_db == NULL) {
                 error = -1;
                 return;
@@ -47,7 +49,7 @@ namespace mars {
             error = sqlite3_prepare_v2(m_db, m_sql.c_str(), -1, &m_stmt, NULL);
             if (error != SQLITE_OK)
             {
-                xerror2("prepare db error:%d info:%s sql:%s", error, getError(m_db), m_sql.c_str());
+                xerror2(TSF"prepare db error:%0 info:%1 sql:%2", error, getError(m_db), m_sql.c_str());
                 error = sqlite3_finalize(m_stmt);
                 m_stmt = NULL;
                 return ;
@@ -61,7 +63,7 @@ namespace mars {
                     return true;
                 }
                 if (error != SQLITE_OK && error != SQLITE_DONE) {
-                    xerror2("sql select error:%d, errorInfo:%s", error, getError(m_db));
+                    xerror2(TSF"sql select error:%0, errorInfo:%1", error, getError(m_db));
                 }
                 return false;
             }
@@ -73,7 +75,7 @@ namespace mars {
                     *rowId = lid;
                 }
                 if (error != SQLITE_DONE) {
-                    xerror2("sql select error:%d, errorInfo:%s", error, getError(m_db));
+                    xerror2(TSF"sql select error:%0, errorInfo:%1", error, getError(m_db));
                 }
 
                 return error == SQLITE_DONE;
@@ -86,7 +88,7 @@ namespace mars {
                     *changes = lid;
                 }
                 if (error != SQLITE_DONE) {
-                    xerror2("sql select error:%d, errorInfo:%s", error, getError(m_db));
+                    xerror2(TSF"sql select error:%0, errorInfo:%1", error, getError(m_db));
                 }
 
                 return error == SQLITE_DONE;
@@ -100,7 +102,7 @@ namespace mars {
                 }
                 
                 if (error != SQLITE_DONE) {
-                    xerror2("sql select error:%d, errorInfo:%s", error, getError(m_db));
+                    xerror2(TSF"sql select error:%0, errorInfo:%1", error, getError(m_db));
                 }
 
                 return error == SQLITE_DONE;
@@ -213,7 +215,7 @@ namespace mars {
                 if (m_stmt) {
                     int rc = SQLITE_OK;
                     if((rc = sqlite3_finalize(m_stmt)) != SQLITE_OK) {
-                        xerror2("finalize_db err:%s, code:%d", getError(m_db), rc);
+                        xerror2(TSF"finalize_db err:%0, code:%1", getError(m_db), rc);
                     }
                     m_stmt = NULL;
                 }
@@ -272,38 +274,46 @@ namespace mars {
                 }
             }
             
-            xerror2("open db %s",DB2Path.c_str());
+            xerror2(TSF"open db %0",DB2Path.c_str());
             
             closeDB();
             sqlite3_shutdown();
             int rc = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
             if (rc != SQLITE_OK)
             {
-                xerror2("config db error %d,ver:%s",rc,sqlite3_libversion());
+                xerror2(TSF"config db error %0,ver:%1",rc,sqlite3_libversion());
                 return;
             }
             rc = sqlite3_config(SQLITE_CONFIG_MEMSTATUS, 0);
             if(rc != SQLITE_OK)
             {
-                xerror2("config db error %d,ver:%s",rc,sqlite3_libversion());
+                xerror2(TSF"config db error %0,ver:%1",rc,sqlite3_libversion());
                 return;
             }
             
             rc = sqlite3_open_v2(DB2Path.c_str(), &m_db, SQLITE_OPEN_READWRITE|SQLITE_OPEN_FULLMUTEX|SQLITE_OPEN_CREATE, NULL);
             if(rc != SQLITE_OK)
             {
-                xerror2("open error:%s error:%d",getError(m_db), rc);
-                closeDB();
-                return;
-            }
-            rc = sqlite3_key(m_db, sec.c_str(), int(sec.size()));
-            if (rc != SQLITE_OK) {
-                xerror2("open error:%s error:%d",getError(m_db), rc);
+                xerror2(TSF"open error:%0 error:%1",getError(m_db), rc);
                 closeDB();
                 return;
             }
             
-            xerror2("open db done");
+            if(m_db == NULL)
+            {
+                xerror2(TSF"open error db is NULL");
+                closeDB();
+                return;
+            }
+            
+            rc = sqlite3_key(m_db, sec.c_str(), int(sec.size()));
+            if (rc != SQLITE_OK) {
+                xerror2(TSF"open error:%0 error:%1",getError(m_db), rc);
+                closeDB();
+                return;
+            }
+            
+            xerror2(TSF"open db done");
             opened = true;
         }
         
@@ -312,7 +322,7 @@ namespace mars {
             {
                 if (sqlite3_close(m_db) != SQLITE_OK)
                 {
-                    xerror2("close error:%s",getError(m_db));
+                    xerror2(TSF"close error:%0",getError(m_db));
                 }
                 m_db = NULL;
             }
