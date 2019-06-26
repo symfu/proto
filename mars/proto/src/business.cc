@@ -324,6 +324,27 @@ public:
     }
 };
 
+        class DeleteFriendPublishCallback : public MQTTPublishCallback {
+        public:
+            DeleteFriendPublishCallback(GeneralOperationCallback *cb, const std::string &fid) : MQTTPublishCallback(), callback(cb), friendUid(fid) {}
+            GeneralOperationCallback *callback;
+            std::string friendUid;
+            void onSuccess(const unsigned char* data, size_t len) {
+                mars::stn::MessageDB::Instance()->DeleteFriend(friendUid);
+                if(callback)
+                    callback->onSuccess();
+                delete this;
+            };
+            void onFalure(int errorCode) {
+                if(callback)
+                    callback->onFalure(errorCode);
+                delete this;
+            };
+            virtual ~DeleteFriendPublishCallback() {
+                
+            }
+        };
+        
         class RecallMessagePublishCallback : public MQTTPublishCallback {
         public:
             RecallMessagePublishCallback(GeneralOperationCallback *cb, long long messageUid) : MQTTPublishCallback(), callback(cb), uid(messageUid) {}
@@ -1276,7 +1297,7 @@ void handleFriendRequest(const std::string &userId, bool accept, GeneralOperatio
 void deleteFriend(const std::string &userId, GeneralOperationCallback *callback) {
     IDBuf *request = new IDBuf();
     request->id = userId;
-    publishTask(request, new GeneralOperationPublishCallback(callback), DeleteFriendTopic, false);
+    publishTask(request, new DeleteFriendPublishCallback(callback, userId), DeleteFriendTopic, false);
 }
         
         void setFriendAlias(const std::string &userId, const std::string &alias, GeneralOperationCallback *callback) {

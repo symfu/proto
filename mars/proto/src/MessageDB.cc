@@ -3365,6 +3365,30 @@ namespace mars {
             return ret;
         }
         
+        bool MessageDB::DeleteFriend(const std::string &friendUid) {
+            if (friendUid.empty()) {
+                return false;
+            }
+            
+            DB2 *db = DB2::Instance();
+            if (!db->isOpened()) {
+                return false;
+            }
+            
+            std::string sql = db->GetDeleteSql(FRIEND_TABLE_NAME, "_friend_uid=?");
+            
+            int error = 0;
+            RecyclableStatement statementHandle(db, sql, error);
+            
+            statementHandle.bind(1, friendUid);
+            
+            if (db->ExecuteDelete(statementHandle) > 0) {
+                return true;
+            }
+            
+            return false;
+        }
+        
         std::list<TFriendRequest> MessageDB::getFriendRequest(int direction) {
             std::list<TFriendRequest> requests;
             

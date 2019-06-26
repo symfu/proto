@@ -112,6 +112,8 @@ namespace mars {
             
             long InsertFriendOrReplace(const std::string &friendUid, int state, int64_t timestamp, const std::string &alias);
             
+            bool DeleteFriend(const std::string &friendUid);
+            
             int unreadFriendRequest();
             void clearUnreadFriendRequestStatus();
             int getMessageFlag(int type);
