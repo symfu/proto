@@ -49,6 +49,10 @@ namespace mars{
             std::string extra;
             int64_t updateDt;
             int64_t memberUpdateDt;
+            int mute;
+            int joinType;
+            int privateChat;
+            int searchable;
         };
         
         typedef enum {

@@ -11,6 +11,7 @@
 #include "mars/proto/stn_callback.h"
 #include "mars/proto/src/Proto/conversation.h"
 #include "mars/comm/thread/atomic_oper.h"
+#include "mars/comm/xlogger/xlogger.h"
 #include "mars/app/app.h"
 #include <map>
 #include <time.h>
@@ -2583,9 +2584,13 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
+            columns.push_back("_mute");
+            columns.push_back("_join_type");
+            columns.push_back("_private_chat");
+            columns.push_back("_searchable");
             std::string sql = db->GetInsertSql(GROUP_TABLE_NAME, columns, true);
 #else
-            std::string sql = db->GetInsertSql(GROUP_TABLE_NAME, {"_uid", "_name", "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, true);
+            std::string sql = db->GetInsertSql(GROUP_TABLE_NAME, {"_uid", "_name", "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt", "_mute", "_join_type", "_private_chat", "_searchable"}, true);
 #endif
             
             int error = 0;
@@ -2603,6 +2608,10 @@ namespace mars {
             db->Bind(statementHandle, groupInfo.extra, 6);
             db->Bind(statementHandle, groupInfo.memberCount, 7);
             db->Bind(statementHandle, groupInfo.updateDt, 8);
+            db->Bind(statementHandle, groupInfo.mute, 9);
+            db->Bind(statementHandle, groupInfo.joinType, 10);
+            db->Bind(statementHandle, groupInfo.privateChat, 11);
+            db->Bind(statementHandle, groupInfo.searchable, 12);
             long ret = 0;
             ret = db->ExecuteInsert(statementHandle, &ret);
             return ret;
@@ -2863,6 +2872,7 @@ namespace mars {
                 std::list<std::pair<std::string, int64_t>> reqList;
                 reqList.push_back(std::pair<std::string, int64_t>(userId, ui.updateDt));
                 reloadUserInfoFromRemote(reqList);
+                xerror2("get user info refresh %s, %d,ver:%d",userId.c_str(), refresh, ui.uid.empty());
             }
             return ui;
         }

@@ -53,6 +53,12 @@ namespace mars{
         const char* keyMemberCount = "member_count";
         const char* keyExtra = "extra";
         const char* keyMemberUpdateDt = "member_update_dt";
+        const char* keyMute = "mute";
+        const char* keyJoinType = "join_type";
+        const char* keyPrivateChat = "private_chat";
+        const char* keySearchable = "searchable";
+        
+        
         const char* keyMemberId = "member_id";
         const char* keyAlias = "alias";
         const char* keyGroupInfo = "group_info";

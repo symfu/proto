@@ -134,6 +134,10 @@ namespace mars{
             int memberCount;
             std::string extra;
             int64_t updateDt;
+            int mute;
+            int joinType;
+            int privateChat;
+            int searchable;
             virtual ~TGroupInfo() {}
 #if WFCHAT_PROTO_SERIALIZABLE
             virtual void Serialize(void *writer) const;

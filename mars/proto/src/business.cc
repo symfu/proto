@@ -1427,6 +1427,10 @@ public:
                 tInfo.extra = info.extra;
                 tInfo.updateDt = info.updateDt;
                 tInfo.memberCount = info.memberCount;
+                tInfo.mute = info.mute;
+                tInfo.joinType = info.joinType;
+                tInfo.privateChat = info.privateChat;
+                tInfo.searchable = info.searchable;
                 retList.push_back(tInfo);
                 MessageDB::Instance()->InsertGroupInfo(tInfo);
             }
