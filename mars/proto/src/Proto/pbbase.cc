@@ -23,6 +23,7 @@ namespace mars{
         const char* keyAddedMember = "added_member";
         const char* keyToLine = "to_line";
         const char* keyNotifyContent = "notify_content";
+        const char* keyUserId = "user_id";
         
         const char* keyType = "type";
         const char* keyTarget = "target";

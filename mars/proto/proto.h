@@ -656,6 +656,8 @@ namespace mars{
         
         extern void (*transferGroup)(const std::string &groupId, const std::string &newOwner, const std::list<int> &notifyLines, TMessageContent &content, GeneralOperationCallback *callback);
         
+        extern void SetGroupManager(const std::string &groupId, const std::list<std::string> userIds, int setOrDelete, const std::list<int> &notifyLines, TMessageContent &content, GeneralOperationCallback *callback);
+        
         extern void (*getUserInfo)(const std::list<std::pair<std::string, int64_t>> &userReqList, GetUserInfoCallback *callback);
         
         extern void reloadGroupInfoFromRemote(const std::list<std::pair<std::string, int64_t>> &groupReqList);

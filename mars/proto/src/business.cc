@@ -1563,7 +1563,11 @@ void (*transferGroup)(const std::string &groupId, const std::string &newOwner, c
 
     publishTask(request, new GeneralOperationPublishCallback(callback), transferGroupTopic, false);
 };
-
+        
+void SetGroupManager(const std::string &groupId, const std::list<std::string> userIds, int setOrDelete, const std::list<int> &notifyLines, TMessageContent &content, GeneralOperationCallback *callback) {
+            
+        }
+        
 class GetUserInfoPublishCallback : public MQTTPublishCallback {
 public:
     GetUserInfoPublishCallback(GetUserInfoCallback *cb) : MQTTPublishCallback(), callback(cb) {}

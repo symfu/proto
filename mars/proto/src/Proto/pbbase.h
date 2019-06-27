@@ -34,6 +34,7 @@ namespace mars{
         
         extern const char* keyGroup;
         
+        extern const char* keyUserId;
         
         extern const char* keyFromUid;
         extern const char* keyToUid;
