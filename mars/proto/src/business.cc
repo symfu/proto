@@ -2384,6 +2384,11 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             getValue(value, "extra", extra);
 //            int64_t updateDt;
             getValue(value, "updateDt", updateDt);
+            
+            getValue(value, "mute", mute);
+            getValue(value, "joinType", joinType);
+            getValue(value, "privateChat", privateChat);
+            getValue(value, "searchable", searchable);
         }
 
         void TGroupInfo::Serialize(void *pwriter) const {
@@ -2416,6 +2421,23 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             writer.String("updateDt");
             writer.Int64(updateDt);
 
+            
+//            int mute;
+            writer.String("mute");
+            writer.Int(mute);
+            
+//            int joinType;
+            writer.String("joinType");
+            writer.Int(joinType);
+            
+//            int privateChat;
+            writer.String("privateChat");
+            writer.Int(privateChat);
+            
+//            int searchable;
+            writer.String("searchable");
+            writer.Int(searchable);
+            
             writer.EndObject();
         }
 

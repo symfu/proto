@@ -125,7 +125,7 @@ namespace mars{
         
         class TGroupInfo : public TSerializable {
         public:
-            TGroupInfo() : target(""), type(0), memberCount(0), updateDt(0) {}
+            TGroupInfo() : target(""), type(0), memberCount(0), updateDt(0), mute(0), joinType(0), privateChat(0), searchable(0) {}
             std::string target;
             std::string name;
             std::string portrait;

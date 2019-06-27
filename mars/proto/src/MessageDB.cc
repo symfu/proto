@@ -2399,9 +2399,13 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
+            columns.push_back("_mute");
+            columns.push_back("_join_type");
+            columns.push_back("_private_chat");
+            columns.push_back("_searchable");
             std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, columns, "_name like ?", "", limit);
 #else
-            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_name like ?", "", limit);
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_uid", "_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt", "_mute", "_join_type", "_private_chat", "_searchable"}, "_name like ?", "", limit);
 #endif
             
             int error = 0;
@@ -2424,6 +2428,10 @@ namespace mars {
                 result.groupInfo.extra = db->getStringValue(statementHandle, 5);
                 result.groupInfo.memberCount = db->getIntValue(statementHandle, 6);
                 result.groupInfo.updateDt = db->getBigIntValue(statementHandle, 7);
+                result.groupInfo.mute = db->getBigIntValue(statementHandle, 8);
+                result.groupInfo.joinType = db->getBigIntValue(statementHandle, 9);
+                result.groupInfo.privateChat = db->getBigIntValue(statementHandle, 10);
+                result.groupInfo.searchable = db->getBigIntValue(statementHandle, 11);
                 result.marchedType = 0;
                 results.push_back(result);
             }
@@ -2523,6 +2531,7 @@ namespace mars {
             if (!db->isOpened()) {
                 return gi;
             }
+            
 #ifdef __ANDROID__
             std::list<std::string> columns;
             columns.push_back("_name");
@@ -2532,9 +2541,13 @@ namespace mars {
             columns.push_back("_extra");
             columns.push_back("_member_count");
             columns.push_back("_update_dt");
+            columns.push_back("_mute");
+            columns.push_back("_join_type");
+            columns.push_back("_private_chat");
+            columns.push_back("_searchable");
             std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, columns, "_uid=?");
 #else
-            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt"}, "_uid=?");
+            std::string sql = db->GetSelectSql(GROUP_TABLE_NAME, {"_name",  "_portrait", "_owner", "_type", "_extra", "_member_count", "_update_dt", "_mute", "_join_type", "_private_chat", "_searchable"}, "_uid=?");
 #endif
             
             int error = 0;
@@ -2554,7 +2567,10 @@ namespace mars {
                 gi.extra = db->getStringValue(statementHandle, 4);
                 gi.memberCount = db->getIntValue(statementHandle, 5);
                 gi.updateDt = db->getBigIntValue(statementHandle, 6);
-                
+                gi.mute = db->getIntValue(statementHandle, 7);
+                gi.joinType = db->getIntValue(statementHandle, 8);
+                gi.privateChat = db->getIntValue(statementHandle, 9);
+                gi.searchable = db->getIntValue(statementHandle, 10);
             } else {
                 gi.target = "";//empty
                 gi.updateDt = 0;
