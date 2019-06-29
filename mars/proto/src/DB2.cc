@@ -22,7 +22,6 @@ namespace mars {
             return "";
         }
         RecyclableStatement::RecyclableStatement(DB2 *db2, const std::string &sql, int &error) : m_db(db2->m_db), m_stmt(NULL), m_sql(sql) {
-            xinfo2(TSF"prepare sql:%0", sql);
             if (m_db == NULL) {
                 error = -1;
                 return;
@@ -40,7 +39,6 @@ namespace mars {
         }
         
         RecyclableStatement::RecyclableStatement(sqlite3 *db, const std::string &sql, int &error) : m_db(db), m_stmt(NULL), m_sql(sql) {
-            xinfo2(TSF"prepare sql:%0", sql);
             if (m_db == NULL) {
                 error = -1;
                 return;

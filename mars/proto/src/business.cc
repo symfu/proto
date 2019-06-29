@@ -31,6 +31,7 @@
 #include "mars/proto/src/Proto/dismiss_group_request.h"
 #include "mars/proto/src/Proto/modify_group_alias.h"
 #include "mars/proto/src/Proto/modify_group_info.h"
+#include "mars/proto/src/Proto/set_group_manager.h"
 #include "mars/proto/src/Proto/id_buf.h"
 #include "mars/proto/src/Proto/int64_buf.h"
 #include "mars/proto/src/Proto/id_list_buf.h"
@@ -109,6 +110,7 @@ const std::string getGroupInfoTopic = "GPGI";
 const std::string getUserInfoTopic = "UPUI";
 const std::string getGroupMemberTopic = "GPGM";
 const std::string transferGroupTopic = "GTG";
+const std::string setGroupManagerTopic = "GSM";
 const std::string getQiniuUploadTokenTopic = "GQNUT";
 const std::string modifyMyInfoTopic = "MMI";
 const std::string AddFriendRequestTopic = "FAR";
@@ -1565,7 +1567,20 @@ void (*transferGroup)(const std::string &groupId, const std::string &newOwner, c
 };
         
 void SetGroupManager(const std::string &groupId, const std::list<std::string> userIds, int setOrDelete, const std::list<int> &notifyLines, TMessageContent &content, GeneralOperationCallback *callback) {
-            
+    SetGroupManagerRequest *request = new SetGroupManagerRequest();
+    request->groupId = groupId;
+    request->type = setOrDelete;
+    
+    for(std::list<std::string>::const_iterator it = userIds.begin(); it != userIds.end(); it++) {
+        request->userIds.push_back(*it);
+    }
+    
+    for(std::list<int>::const_iterator it = notifyLines.begin(); it != notifyLines.end(); it++) {
+        request->toLines.push_back(*it);
+    }
+    
+    fillMessageContent(content, &(request->notifyContent));
+    publishTask(request, new GeneralOperationPublishCallback(callback), setGroupManagerTopic, false);
         }
         
 class GetUserInfoPublishCallback : public MQTTPublishCallback {
