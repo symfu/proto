@@ -459,6 +459,15 @@ public class ProtoLogic {
 //    error:(void(^)(int error_code))errorBlock;
     public static native void modifyGroupAlias(String groupId, String newAlias, int[] notifyLines, ProtoMessageContent notifyMsg, IGeneralCallback callback);
 
+//- (void)setGroupManager:(NSString *)groupId
+//                  isSet:(BOOL)isSet
+//              memberIds:(NSArray<NSString *> *)memberIds
+//            notifyLines:(NSArray<NSNumber *> *)notifyLines
+//          notifyContent:(WFCCMessageContent *)notifyContent
+//                success:(void(^)(void))successBlock
+//                  error:(void(^)(int error_code))errorBlock {
+    public static native void setGroupManager(String groupId, boolean isSet, String[] memberIds, int[] notifyLines, ProtoMessageContent notifyMsg, IGeneralCallback callback);
+
 //- (NSArray<WFCCGroupMember *> *)getGroupMembers:(NSString *)groupId
 //                             forceUpdate:(BOOL)forceUpdate;
     public static native ProtoGroupMember[] getGroupMembers(String groupId, boolean forceUpdate);

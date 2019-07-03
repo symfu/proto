@@ -388,6 +388,19 @@ jobject convertProtoGroupInfo(JNIEnv *env, const mars::stn::TGroupInfo &tGroupIn
     //groupInfo.memberCount = tgi.memberCount;
     SetObjectValue_Int(env, obj, jgroupInfo, "setMemberCount", tGroupInfo.memberCount);
 
+    //groupInfo.mute = tgi.mute;
+    SetObjectValue_Int(env, obj, jgroupInfo, "setMute", tGroupInfo.mute);
+
+    //groupInfo.joinType = tgi.joinType;
+    SetObjectValue_Int(env, obj, jgroupInfo, "setJoinType", tGroupInfo.joinType);
+
+    //groupInfo.privateChat = tgi.privateChat;
+    SetObjectValue_Int(env, obj, jgroupInfo, "setPrivateChat", tGroupInfo.privateChat);
+
+    //groupInfo.searchable = tgi.searchable;
+    SetObjectValue_Int(env, obj, jgroupInfo, "setSearchable", tGroupInfo.searchable);
+
+
     return obj;
 }
 
@@ -2364,6 +2377,46 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_modifyGroupAlias
 
     mars::stn::modifyGroupAlias(ScopedJstring(_env, groupId).GetChar(), ScopedJstring(_env, newAlias).GetChar(), ls, tcontent, new IMGeneralOperationCallback(_env->NewGlobalRef(callback)));
 }
+
+//public static native void setGroupManager(String groupId, boolean isSet, String[] memberIds, int[] notifyLines, ProtoMessageContent notifyMsg, IGeneralCallback callback);
+JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_setGroupManager
+		(JNIEnv *_env, jclass clz, jstring groupId, jboolean isSet, jobjectArray memberArray, jintArray lineArray, jobject notifyMsg, jobject callback) {
+
+        std::list<std::string> memberList;
+        int count = _env->GetArrayLength(memberArray);
+        if (count == 0) {
+            printf("--%s:idcnt", __FUNCTION__);
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            jstring jmemberId = (jstring)_env->GetObjectArrayElement(memberArray, i );
+            memberList.push_back(ScopedJstring(_env, jmemberId).GetChar());
+        }
+
+
+        std::list<int> ls;
+        int count = _env->GetArrayLength(lineArray);
+        if (count == 0) {
+            printf("--%s:idcnt", __FUNCTION__);
+            return ;
+        }
+
+        jint *jtypes = _env->GetIntArrayElements(lineArray, NULL);
+        if (jtypes == NULL) {
+            printf("--%s:typeids", __FUNCTION__);
+            return ;
+        }
+        for (int i = 0; i < count; i++) {
+            ls.push_back((int)(jtypes[i]));
+        }
+
+    mars::stn::TMessageContent tcontent;
+    convertMessageContent(_env, notifyMsg, tcontent);
+
+    mars::stn::SetGroupManager(ScopedJstring(_env, groupId).GetChar(), memberList, isSet ? 1 : 0, ls, tcontent, new IMGeneralOperationCallback(_env->NewGlobalRef(callback)));
+}
+
 
 jobject convertProtoGroupMember(JNIEnv *env, const mars::stn::TGroupMember &tGroupMember) {
     jclass jgroupMember = (jclass)g_objGroupMember;
