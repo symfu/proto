@@ -2396,7 +2396,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_setGroupManager
 
 
         std::list<int> ls;
-        int count = _env->GetArrayLength(lineArray);
+        count = _env->GetArrayLength(lineArray);
         if (count == 0) {
             printf("--%s:idcnt", __FUNCTION__);
             return ;
