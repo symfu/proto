@@ -306,7 +306,7 @@ jobject convertProtoUserInfo(JNIEnv *env, const mars::stn::TUserInfo &tUserInfo)
     SetObjectValue_String(env, obj, juserInfo, "setEmail", tUserInfo.email.c_str());
 
 //    userInfo.address = [NSString stringWithUTF8String:tui.address.c_str()];
-    SetObjectValue_String(env, obj, juserInfo, "setAdress", tUserInfo.address.c_str());
+    SetObjectValue_String(env, obj, juserInfo, "setAddress", tUserInfo.address.c_str());
 
 //    userInfo.company = [NSString stringWithUTF8String:tui.company.c_str()];
     SetObjectValue_String(env, obj, juserInfo, "setCompany", tUserInfo.company.c_str());
