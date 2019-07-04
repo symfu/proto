@@ -594,10 +594,8 @@ public:
             ScopeJEnv scope_jenv(cache_instance->GetJvm());
             JNIEnv *env = scope_jenv.GetEnv();
 
-            if(friendIdList.size() > 0) {
-                jobjectArray jFriendIdList = convertStringList(env, friendIdList);
-                JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onFriendListUpdated, jFriendIdList);
-            }
+            jobjectArray jFriendIdList = convertStringList(env, friendIdList);
+            JNU_CallStaticMethodByMethodInfo(env, KProto2Java_onFriendListUpdated, jFriendIdList);
         }
     }
     void onFalure(int errorCode) {
