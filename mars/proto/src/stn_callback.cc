@@ -203,11 +203,12 @@ void StnCallBack::onPullMsgSuccess(std::list<TMessage> messageList, int64_t curr
         currentChatroomHead = current;
     }
     MessageDB::Instance()->UpdateMessageTimeline(current);
-    PullMessage(head, pullType, false, refreshSetting);
     
     if(m_receiveMessageCB) {
         m_receiveMessageCB->onReceiveMessage(messageList, head > current);
     }
+    
+    PullMessage(head, pullType, false, refreshSetting);
 }
 void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
     if (pullType != Pull_ChatRoom) {
