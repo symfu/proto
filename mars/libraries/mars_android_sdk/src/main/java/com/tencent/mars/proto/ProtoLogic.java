@@ -413,7 +413,7 @@ public class ProtoLogic {
 //            success:(void(^)(NSString *groupId))successBlock
 //              error:(void(^)(int error_code))errorBlock;
 
-    public static native void createGroup(String groupId, String groupName, String groupPortrait, String[] memberIds, int[] notifyLines, ProtoMessageContent notifyMsg, IGeneralCallback2 callback);
+    public static native void createGroup(String groupId, String groupName, String groupPortrait, int groupType, String[] memberIds, int[] notifyLines, ProtoMessageContent notifyMsg, IGeneralCallback2 callback);
 //- (void)addMembers:(NSArray *)members
 //           toGroup:(NSString *)groupId
 //       notifyLines:(NSArray<NSNumber *> *)notifyLines

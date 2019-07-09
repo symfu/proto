@@ -1418,12 +1418,12 @@ namespace mars {
                     where += ",";
                 }
                 where = where.substr(0, where.size()-1);
-                where += ") and";
+                where += ") ";
             }
             
             
             if (lines.size() > 0) {
-                where += " _conv_line in (";
+                where += " and _conv_line in (";
                 for (std::list<int>::const_iterator it = lines.begin(); it != lines.end(); it++) {
                     char str[255];
                     memset(str, 0, 255);
@@ -1432,23 +1432,26 @@ namespace mars {
                     where += ",";
                 }
                 where = where.substr(0, where.size()-1);
-                where += ") and";
+                where += ") ";
             }
             
-            where += " _status=? and";
+            if (messageStatus >= 0) {
+                where += " and _status=? ";
+            }
+            
             
             
             if (!withUser.empty()) {
-                where += " _from=? and";
+                where += " and _from=? ";
             }
             
             int64_t ts = 0;
             
             if (startPoint != 0 && startPoint != INT_MAX && startPoint != LONG_MAX && startPoint != 9223372036854775807LL) {
                 if (desc) {
-                    where += " _timestamp < ?";
+                    where += " and _timestamp < ?";
                 } else {
-                    where += " _timestamp > ?";
+                    where += " and _timestamp > ?";
                 }
             }
             
@@ -1525,7 +1528,10 @@ namespace mars {
             }
             
             int index = 1;
-            db->Bind(statementHandle, messageStatus, index++);
+            if (messageStatus >= 0) {
+                db->Bind(statementHandle, messageStatus, index++);
+            }
+            
             if (!withUser.empty()) {
                 db->Bind(statementHandle, withUser, index++);
             }
@@ -1996,9 +2002,10 @@ namespace mars {
                 return false;
             }
             
-            db->Bind(updateStatementHandle, Message_Status_Unread, 1);
-            db->Bind(updateStatementHandle, Message_Status_Mentioned, 2);
-            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 3);
+            db->Bind(updateStatementHandle, Message_Status_Readed, 1);
+            db->Bind(updateStatementHandle, Message_Status_Unread, 2);
+            db->Bind(updateStatementHandle, Message_Status_Mentioned, 3);
+            db->Bind(updateStatementHandle, Message_Status_AllMentioned, 4);
             int count = db->ExecuteUpdate(updateStatementHandle);
             
             return count > 0;

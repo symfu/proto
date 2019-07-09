@@ -1316,11 +1316,11 @@ void blackListRequest(const std::string &userId, bool blacked, GeneralOperationC
     publishTask(request, new GeneralOperationPublishCallback(callback), BlackListUserTopic, false);
 }
 
-void (*createGroup)(const std::string &groupId, const std::string &groupName, const std::string &groupPortrait, const std::list<std::string> &groupMembers, const std::list<int> &notifyLines, TMessageContent &content, CreateGroupCallback *callback)
-= [](const std::string &groupId, const std::string &groupName, const std::string &groupPortrait, const std::list<std::string> &groupMembers, const std::list<int> &notifyLines, TMessageContent &content, CreateGroupCallback *callback) {
+void (*createGroup)(const std::string &groupId, const std::string &groupName, const std::string &groupPortrait, int groupType, const std::list<std::string> &groupMembers, const std::list<int> &notifyLines, TMessageContent &content, CreateGroupCallback *callback)
+= [](const std::string &groupId, const std::string &groupName, const std::string &groupPortrait, int groupType, const std::list<std::string> &groupMembers, const std::list<int> &notifyLines, TMessageContent &content, CreateGroupCallback *callback) {
     CreateGroupRequest *request = new CreateGroupRequest();
     request->group.groupInfo.targetId = groupId;
-    request->group.groupInfo.type = GroupType_Normal;
+    request->group.groupInfo.type = (GroupType)groupType;
     request->group.groupInfo.portrait = groupPortrait;
     request->group.groupInfo.name = groupName;
 

@@ -2123,7 +2123,7 @@ public:
 
 //public static native void createGroup(String groupId, String groupName, String groupPortrait, String[] memberIds, int[] notifyLines, ProtoMessage notifyMsg, IGeneralCallback2 callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_createGroup
-		(JNIEnv *_env, jclass clz, jstring groupId, jstring groupName, jstring groupPortrait, jobjectArray memberArray, jintArray lineArray, jobject notifyMsg, jobject callback) {
+		(JNIEnv *_env, jclass clz, jstring groupId, jstring groupName, jstring groupPortrait, jint groupType, jobjectArray memberArray, jintArray lineArray, jobject notifyMsg, jobject callback) {
     std::list<std::string> memberList;
         int count = _env->GetArrayLength(memberArray);
         if (count == 0) {
@@ -2156,7 +2156,7 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_createGroup
     mars::stn::TMessageContent tcontent;
     convertMessageContent(_env, notifyMsg, tcontent);
 
-    mars::stn::createGroup(ScopedJstring(_env, groupId).GetCharWithDefault(""), ScopedJstring(_env, groupName).GetCharWithDefault(""), ScopedJstring(_env, groupPortrait).GetCharWithDefault(""), memberList, ls, tcontent, new IMCreateGroupCallback(_env->NewGlobalRef(callback)));
+    mars::stn::createGroup(ScopedJstring(_env, groupId).GetCharWithDefault(""), ScopedJstring(_env, groupName).GetCharWithDefault(""), ScopedJstring(_env, groupPortrait).GetCharWithDefault(""), (int)groupType, memberList, ls, tcontent, new IMCreateGroupCallback(_env->NewGlobalRef(callback)));
 }
 
 //public static native void addMembers(String groupId, String[] memberIds, int[] notifyLines, ProtoMessage notifyMsg, IGeneralCallback callback);
