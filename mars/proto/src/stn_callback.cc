@@ -298,15 +298,23 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                         StnCallBack::Instance()->converProtoMessage(*it, tmsg, true, curUser);
                         messageList.push_back(tmsg);
                         
-//                        #define MESSAGE_CONTENT_TYPE_CREATE_GROUP 104
-//                        #define MESSAGE_CONTENT_TYPE_ADD_GROUP_MEMBER 105
-//                        #define MESSAGE_CONTENT_TYPE_KICKOF_GROUP_MEMBER 106
-//                        #define MESSAGE_CONTENT_TYPE_QUIT_GROUP 107
-//                        #define MESSAGE_CONTENT_TYPE_DISMISS_GROUP 108
-//                        #define MESSAGE_CONTENT_TYPE_TRANSFER_GROUP_OWNER 109
+//#define MESSAGE_CONTENT_TYPE_CREATE_GROUP 104
+//#define MESSAGE_CONTENT_TYPE_ADD_GROUP_MEMBER 105
+//#define MESSAGE_CONTENT_TYPE_KICKOF_GROUP_MEMBER 106
+//#define MESSAGE_CONTENT_TYPE_QUIT_GROUP 107
+//#define MESSAGE_CONTENT_TYPE_DISMISS_GROUP 108
+//#define MESSAGE_CONTENT_TYPE_TRANSFER_GROUP_OWNER 109
+//
 //#define MESSAGE_CONTENT_TYPE_CHANGE_GROUP_NAME 110
 //#define MESSAGE_CONTENT_TYPE_MODIFY_GROUP_ALIAS 111
 //#define MESSAGE_CONTENT_TYPE_CHANGE_GROUP_PORTRAIT 112
+//
+//#define MESSAGE_CONTENT_TYPE_CHANGE_MUTE 113
+//#define MESSAGE_CONTENT_TYPE_CHANGE_JOINTYPE 114
+//#define MESSAGE_CONTENT_TYPE_CHANGE_PRIVATECHAT 115
+//#define MESSAGE_CONTENT_TYPE_CHANGE_SEARCHABLE 116
+//#define MESSAGE_CONTENT_TYPE_SET_MANAGER 117
+
                         if (tmsg.conversationType == 1) {
                             if (tmsg.content.type == MESSAGE_CONTENT_TYPE_CREATE_GROUP
                                 || tmsg.content.type == MESSAGE_CONTENT_TYPE_ADD_GROUP_MEMBER
@@ -315,11 +323,22 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                                 || tmsg.content.type == MESSAGE_CONTENT_TYPE_MODIFY_GROUP_ALIAS) {
                                 needUpdateGroup.insert(tmsg.target);
                                 needUpdateGroupMember.insert(tmsg.target);
-                            } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_NAME
-                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_PORTRAIT) {
+                            } else if(tmsg.content.type == MESSAGE_CONTENT_TYPE_SET_MANAGER) {
+                                needUpdateGroupMember.insert(tmsg.target);
+                            } else  if (tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_NAME
+                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_GROUP_PORTRAIT
+                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_MUTE
+                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_JOINTYPE
+                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_PRIVATECHAT
+                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_CHANGE_SEARCHABLE) {
                                 needUpdateGroup.insert(tmsg.target);
-                            } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_QUIT_GROUP
-                                       || tmsg.content.type == MESSAGE_CONTENT_TYPE_DISMISS_GROUP) {
+                            } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_QUIT_GROUP) {
+                                if (tmsg.from == curUser) {
+                                    MessageDB::Instance()->RemoveGroupAndMember(tmsg.target);
+                                    MessageDB::Instance()->ClearUnreadStatus(tmsg.conversationType, tmsg.target, tmsg.line);
+                                    MessageDB::Instance()->RemoveConversation(tmsg.conversationType, tmsg.target, tmsg.line);
+                                }
+                            } else if (tmsg.content.type == MESSAGE_CONTENT_TYPE_DISMISS_GROUP) {
                                 MessageDB::Instance()->RemoveGroupAndMember(tmsg.target);
                                 MessageDB::Instance()->ClearUnreadStatus(tmsg.conversationType, tmsg.target, tmsg.line);
                                 MessageDB::Instance()->RemoveConversation(tmsg.conversationType, tmsg.target, tmsg.line);
