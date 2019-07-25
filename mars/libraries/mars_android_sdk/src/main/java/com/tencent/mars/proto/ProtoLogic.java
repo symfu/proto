@@ -316,7 +316,7 @@ public class ProtoLogic {
     public static native void setConversationSilent(int conversationType, String target, int line, boolean silent);
 
     //- (void)searchUser:(NSString *)keyword success:(void(^)(NSArray<WFCCUserInfo *> *machedUsers))successBlock error:(void(^)(int errorCode))errorBlock {
-    public static native void searchUser(String keyword, ISearchUserCallback callback);
+    public static native void searchUser(String keyword, boolean fuzzy, int page, ISearchUserCallback callback);
 
     //- (BOOL)isMyFriend:(NSString *)userId
     public static native boolean isMyFriend(String userId);

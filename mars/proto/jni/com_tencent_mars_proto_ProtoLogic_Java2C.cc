@@ -1693,8 +1693,8 @@ public:
 
 //public static native void searchUser(String keyword, ISearchUserCallback callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_searchUser
-		(JNIEnv *_env, jclass clz, jstring keyword, jobject callback) {
-    mars::stn::searchUser(ScopedJstring(_env, keyword).GetChar(), true, 0, new IMSearchUserCallback(_env->NewGlobalRef(callback)));
+		(JNIEnv *_env, jclass clz, jstring keyword, jboolean fuzzy, jint page, jobject callback) {
+    mars::stn::searchUser(ScopedJstring(_env, keyword).GetChar(), fuzzy, page, new IMSearchUserCallback(_env->NewGlobalRef(callback)));
 }
 
 //public static native boolean isMyFriend(String userId);
