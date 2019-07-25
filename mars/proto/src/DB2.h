@@ -144,6 +144,7 @@ namespace mars {
             bool UpgradeDB5Version6();
             bool UpgradeDB6Version7();
             bool UpgradeDB7Version8();
+            bool UpgradeDB8Version9();
             
             bool IsTableExist(std::string tableName);
             bool executeSql(const std::string &sql);

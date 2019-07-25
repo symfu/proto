@@ -789,6 +789,11 @@ namespace mars {
                 if (version == 7) {
                     UpgradeDB7Version8();
                 }
+                
+                if(version == 8) {
+                    UpgradeDB8Version9();
+                    version = 9;
+                }
             }
         }
         
@@ -915,7 +920,30 @@ namespace mars {
             return SetDBVersion(8);
         }
 
-        
+            bool DB2::UpgradeDB8Version9() {
+                static const std::string createMessageIndex1 = "CREATE INDEX IF NOT EXISTS message_index1 ON t_message(_conv_type, _conv_line, _conv_target, _status)";
+                if (!executeSql(createMessageIndex1)) {
+                    return false;
+                }
+                
+                static const std::string createMessageIndex2 = "CREATE INDEX IF NOT EXISTS message_index2 ON t_message(_status)";
+                if (!executeSql(createMessageIndex2)) {
+                    return false;
+                }
+                
+                static const std::string createMessageIndex3 = "CREATE INDEX IF NOT EXISTS message_index3 ON t_message(_uid)";
+                if (!executeSql(createMessageIndex3)) {
+                    return false;
+                }
+                
+                static const std::string createMessageIndex4 = "CREATE INDEX IF NOT EXISTS message_index4 ON t_message(_timestamp)";
+                if (!executeSql(createMessageIndex4)) {
+                    return false;
+                }
+                
+                return SetDBVersion(9);
+            }
+            
         bool DB2::CreateDB2Version1() {
             
             //create message table
