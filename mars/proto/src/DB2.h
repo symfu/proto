@@ -81,6 +81,7 @@ namespace mars {
             void Open(const std::string &sec);
             void Upgrade();
             bool isOpened();
+            bool CheckDB(const std::string &sec);
 #ifdef __ANDROID__
             std::string GetSelectSqlEx(const std::string &tableNameLeft, const std::list<std::string> &columnsLeft, const std::string &tableNameRight, const std::list<std::string> &columnsRight, const std::string &where,const std::string &orderBy = "", int limit = 0, int offset = 0, const std::string &groupBy = "");
             

@@ -28,6 +28,7 @@
 using namespace http;
 
 extern unsigned char * encrypt_data(const unsigned char* data, unsigned int data_length, unsigned int *output_length, bool rootKey);
+extern unsigned char * decrypt_data(const unsigned char* data, unsigned int data_length, unsigned int *output_length, bool rootKey, bool checkTime);
 
 static std::string encodedClientId;
 static std::string encodedUserId;
@@ -105,6 +106,32 @@ namespace mars { namespace stn {
         ptmp = NULL;
         tmpLen = 0;
         return out;
+    }
+    
+    std::string GetEncodeDataEx(std::string pbData) {
+        unsigned int tmpLen = 0;
+        unsigned char *ptmp = encrypt_data((const unsigned char*)pbData.c_str(), (unsigned int)pbData.length(), &tmpLen, false);
+        std::string out((char*)ptmp, tmpLen);
+        
+        free(ptmp);
+        ptmp = NULL;
+        tmpLen = 0;
+        
+        return out;
+    }
+    
+    std::string GetDecodeData(std::string data) {
+        if (data.length() == 0) {
+            return "";
+        }
+        unsigned int dataLen = 0;
+        unsigned char* pdata = (unsigned char* )decrypt_data((const unsigned char*)data.c_str(), (unsigned int)data.length(), &dataLen, false, false);
+        if (dataLen == 0) {
+            return "";
+        }
+        std::string str((char*)pdata, dataLen);
+        free(pdata);
+        return str;
     }
     
     std::map<std::string, std::string> stringToMap(std::string &str)

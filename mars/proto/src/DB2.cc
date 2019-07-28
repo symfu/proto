@@ -257,7 +257,10 @@ namespace mars {
         bool DB2::isOpened() {
             return opened;
         }
-        
+        bool DB2::CheckDB(const std::string &sec) {
+            
+            return true;
+        }
         void DB2::Open(const std::string &sec) {
             secret = sec;
             
