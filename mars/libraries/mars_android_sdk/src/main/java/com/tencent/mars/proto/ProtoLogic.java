@@ -1,5 +1,7 @@
 package com.tencent.mars.proto;
 
+import android.os.RemoteException;
+
 import com.tencent.mars.Mars;
 
 import java.util.ArrayList;
@@ -283,7 +285,8 @@ public class ProtoLogic {
     public static native ProtoConversationInfo getConversation(int conversationType, String target, int line);
 
     public static native ProtoMessage[] getMessages(int conversationType, String target, int line, long fromIndex, boolean before, int count, String withUser);
-
+    public static native ProtoMessage[] getMessagesEx(int[] conversationTypes, int[] lines, int[] contentTypes, long fromIndex, boolean before, int count, String withUser);
+    public static native ProtoMessage[] getMessagesEx2(int[] conversationTypes, int[] lines, int messageStatus, long fromIndex, boolean before, int count, String withUser);
 //    - (void)getRemoteMessages:(WFCCConversation *)conversation
 //    before:(long long)beforeMessageUid
 //    count:(NSUInteger)count

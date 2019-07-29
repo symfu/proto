@@ -1428,6 +1428,99 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessages
     return convertProtoMessageList(_env, messages);
 }
 
+//public static native ProtoMessage[] getMessagesEx(int[] conversationTypes, int[] lines, int[] contentTypes, long fromIndex, boolean before, int count, String withUser);
+JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessagesEx
+		(JNIEnv *_env, jclass clz, jintArray typeArray, jintArray lineArray, jintArray contentTypes, jlong fromIndex, jboolean before, jint jcount, jstring withUser) {
+	    std::list<int> types;
+            int count = _env->GetArrayLength(typeArray);
+            if (count == 0) {
+                printf("--%s:idcnt", __FUNCTION__);
+                return NULL;
+            }
+
+            jint *jtypes = _env->GetIntArrayElements(typeArray, NULL);
+            if (jtypes == NULL) {
+                printf("--%s:typeids", __FUNCTION__);
+                return NULL;
+            }
+            for (int i = 0; i < count; i++) {
+                types.push_back((int)(jtypes[i]));
+            }
+
+        std::list<int> ls;
+            count = _env->GetArrayLength(lineArray);
+            if (count == 0) {
+                printf("--%s:idcnt", __FUNCTION__);
+                return NULL;
+            }
+
+            jtypes = _env->GetIntArrayElements(lineArray, NULL);
+            if (jtypes == NULL) {
+                printf("--%s:typeids", __FUNCTION__);
+                return NULL;
+            }
+            for (int i = 0; i < count; i++) {
+                ls.push_back((int)(jtypes[i]));
+            }
+
+        std::list<int> cts;
+                    count = _env->GetArrayLength(contentTypes);
+                    if (count > 0) {
+                        jtypes = _env->GetIntArrayElements(contentTypes, NULL);
+                        if (jtypes == NULL) {
+                            printf("--%s:typeids", __FUNCTION__);
+                            return NULL;
+                        }
+                        for (int i = 0; i < count; i++) {
+                            cts.push_back((int)(jtypes[i]));
+                        }
+                    }
+
+
+
+    std::list<mars::stn::TMessage> messages = mars::stn::MessageDB::Instance()->GetMessages(types, ls, cts, (bool)before, (int)jcount, (long)fromIndex, jstringToString(_env, withUser));
+    return convertProtoMessageList(_env, messages);
+}
+//public static native ProtoMessage[] getMessagesEx2(int[] conversationTypes, int[] lines, int messageStatus, long fromIndex, boolean before, int count, String withUser);
+JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getMessagesEx2
+		(JNIEnv *_env, jclass clz, jintArray typeArray, jintArray lineArray, jint messageStatus, jlong fromIndex, jboolean before, jint jcount, jstring withUser) {
+	    std::list<int> types;
+            int count = _env->GetArrayLength(typeArray);
+            if (count == 0) {
+                printf("--%s:idcnt", __FUNCTION__);
+                return NULL;
+            }
+
+            jint *jtypes = _env->GetIntArrayElements(typeArray, NULL);
+            if (jtypes == NULL) {
+                printf("--%s:typeids", __FUNCTION__);
+                return NULL;
+            }
+            for (int i = 0; i < count; i++) {
+                types.push_back((int)(jtypes[i]));
+            }
+
+        std::list<int> ls;
+            count = _env->GetArrayLength(lineArray);
+            if (count == 0) {
+                printf("--%s:idcnt", __FUNCTION__);
+                return NULL;
+            }
+
+            jtypes = _env->GetIntArrayElements(lineArray, NULL);
+            if (jtypes == NULL) {
+                printf("--%s:typeids", __FUNCTION__);
+                return NULL;
+            }
+            for (int i = 0; i < count; i++) {
+                ls.push_back((int)(jtypes[i]));
+            }
+
+
+    std::list<mars::stn::TMessage> messages = mars::stn::MessageDB::Instance()->GetMessages(types, ls, messageStatus, (bool)before, (int)jcount, (long)fromIndex, jstringToString(_env, withUser));
+    return convertProtoMessageList(_env, messages);
+}
+
 //public static native void getRemoteMessages(int conversationType, String target, int line, long beforeMessageUid, int count, ILoadRemoteMessagesCallback callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_getRemoteMessages
 		(JNIEnv *_env, jclass clz, jint type, jstring target, jint line, jlong beforeMessageUid, jint count, jobject callback) {
