@@ -791,6 +791,7 @@ namespace mars {
 
                 if (version == 7) {
                     UpgradeDB7Version8();
+                    version = 8;
                 }
                 
                 if(version == 8) {
