@@ -210,11 +210,11 @@ void StnCallBack::onPullMsgSuccess(std::list<TMessage> messageList, int64_t curr
     
     PullMessage(head, pullType, false, refreshSetting);
 }
-void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
+void StnCallBack::onPullMsgFailure(int errorCode, int pullType, bool refreshSetting) {
     if (pullType != Pull_ChatRoom) {
         isPullingMsg = false;
         pullRetryCount++;
-        PullMessage(0x7FFFFFFFFFFFFFFF, pullType, true, false);
+        PullMessage(0x7FFFFFFFFFFFFFFF, pullType, true, refreshSetting);
     } else {
         isPullingChatroomMsg = false;
     }
@@ -359,16 +359,13 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType) {
                     }
                     
                     cb->onPullMsgSuccess(messageList, result.current, result.head, mPullType, mRefreshSetting);
-                    if (mRefreshSetting) {
-                        StnCallBack::Instance()->PullSetting(0x7FFFFFFFFFFFFFFF);
-                    }
                 } else {
-                    cb->onPullMsgFailure(-1, mPullType);
+                    cb->onPullMsgFailure(-1, mPullType, mRefreshSetting);
                 }
                 delete this;
             };
             void onFalure(int errorCode) {
-                cb->onPullMsgFailure(errorCode, mPullType);
+                cb->onPullMsgFailure(errorCode, mPullType, mRefreshSetting);
                 delete this;
             };
             virtual ~PullingMessagePublishCallback() {
@@ -384,6 +381,9 @@ void StnCallBack::PullMessage(int64_t head, int type, bool retry, bool refreshSe
         if (isPullingMsg || currentHead >= head) {
             if (currentHead >= head && m_connectionStatus != kConnectionStatusConnected) {
                 updateConnectionStatus(kConnectionStatusConnected);
+                if (refreshSetting) {
+                    StnCallBack::Instance()->PullSetting(0x7FFFFFFFFFFFFFFF);
+                }
             }
             return;
         }
