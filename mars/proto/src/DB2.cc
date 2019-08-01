@@ -264,7 +264,7 @@ namespace mars {
         void DB2::Open(const std::string &sec) {
             secret = sec;
             
-            if (!m_path.empty()) {
+            if (m_path.empty()) {
                 m_path = app::GetAppFilePath() + "/" + app::GetDeviceInfo().clientid;
             }
             
