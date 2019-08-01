@@ -133,6 +133,8 @@ namespace mars {
             bool UpdateUserServerAddress(const std::string &userId, const UserServerAddress &userServer);
             UserServerAddress GetUserServerAddress(const std::string &userId);
             friend RecyclableStatement;
+            
+            std::string m_path;
         private:
             static DB2* instance_;
             

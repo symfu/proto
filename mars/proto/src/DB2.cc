@@ -264,10 +264,13 @@ namespace mars {
         void DB2::Open(const std::string &sec) {
             secret = sec;
             
-            std::string path = app::GetAppFilePath() + "/" + app::GetDeviceInfo().clientid;
-            std::string DB2Path = path + "/" + DB2_NAME;
-            if(!boost::filesystem::exists(path)) {
-                boost::filesystem::create_directories(path);
+            if (!m_path.empty()) {
+                m_path = app::GetAppFilePath() + "/" + app::GetDeviceInfo().clientid;
+            }
+            
+            std::string DB2Path = m_path + "/" + DB2_NAME;
+            if(!boost::filesystem::exists(m_path)) {
+                boost::filesystem::create_directories(m_path);
                 std::string oldDB = app::GetAppFilePath() + "/" + DB2_NAME;
                 if (boost::filesystem::exists(oldDB)) {
                     boost::filesystem::copy(oldDB, DB2Path);
