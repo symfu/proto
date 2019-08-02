@@ -1829,9 +1829,7 @@ MQTTDisconnectTask::MQTTDisconnectTask() : MQTTTask(MQTT_MSG_DISCONNECT), flag(0
             free(tmp);
             return false;
         }
-        void setDbPath(const std::string &dbPath) {
-            DB2::Instance()->m_path = dbPath;
-        }
+
 bool setAuthInfo(const std::string &userId, const std::string &token) {
     if(!decodeToken(token, gToken, gSecret, gDbSecret)) {
         mars::stn::StnCallBack::Instance()->updateConnectionStatus(kConnectionStatusTokenIncorrect);

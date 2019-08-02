@@ -603,7 +603,6 @@ namespace mars{
             virtual void onRecallMessage(const std::string operatorId, long long messageUid) = 0;
         };
         
-        extern void setDbPath(const std::string &dbPath);
         extern bool setAuthInfo(const std::string &userId, const std::string &token);
         extern void Disconnect(uint8_t flag);
         extern void (*Connect)(const std::string& host, uint16_t shortLinkPort);
