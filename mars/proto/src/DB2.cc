@@ -271,13 +271,7 @@ namespace mars {
             std::string DB2Path = m_path + "/" + DB2_NAME;
             if(!boost::filesystem::exists(m_path)) {
                 boost::filesystem::create_directories(m_path);
-                std::string oldDB = app::GetAppFilePath() + "/" + DB2_NAME;
-                if (boost::filesystem::exists(oldDB)) {
-                    boost::filesystem::copy(oldDB, DB2Path);
-                    boost::filesystem::remove(oldDB);
-                }
             }
-            
             xerror2(TSF"open db %0",DB2Path.c_str());
             
             closeDB();
