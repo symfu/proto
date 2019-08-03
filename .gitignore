@@ -119,3 +119,4 @@ samples
 mars/sdt/sdt-mac.xcodeproj
 mars/stn/stn-mac.xcodeproj
 mars/openssl/openssl_lib_windows
+mars/libraries/iOS_release
