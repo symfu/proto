@@ -122,3 +122,4 @@ mars/openssl/openssl_lib_windows
 mars/libraries/iOS_release
 mars/comm/windows
 mars/libraries/mac_release
+mars/libraries/Win32_release
