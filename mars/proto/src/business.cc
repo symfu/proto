@@ -275,8 +275,7 @@ public:
 
         }
 
-void (*Connect)(const std::string& host, uint16_t shortLinkPort)
-= [](const std::string& host, uint16_t shortLinkPort) {
+bool Connect(const std::string& host, uint16_t shortLinkPort) {
     gRouteHost = host;
     gRoutePort = shortLinkPort;
 
@@ -305,6 +304,11 @@ void (*Connect)(const std::string& host, uint16_t shortLinkPort)
     }
 
     mars::baseevent::OnForeground(true);
+    if (DB2::Instance()->newCreatedDB) {
+        DB2::Instance()->newCreatedDB = false;
+        return true;
+    }
+    return false;
 };
 
 class GeneralOperationPublishCallback : public MQTTPublishCallback {

@@ -246,7 +246,7 @@ namespace mars {
             return instance_;
         }
         
-        DB2::DB2() : opened(false), m_db(NULL) {
+        DB2::DB2() : opened(false), m_db(NULL), newCreatedDB(false) {
             
         }
         
@@ -269,6 +269,7 @@ namespace mars {
             std::string DB2Path = path + "/" + DB2_NAME;
             if(!boost::filesystem::exists(path)) {
                 boost::filesystem::create_directories(path);
+                newCreatedDB = true;
             }
             
             xerror2(TSF"open db %0",DB2Path.c_str());
