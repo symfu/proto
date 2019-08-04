@@ -656,10 +656,10 @@ JNIEXPORT jobject JNICALL Java_com_tencent_mars_proto_ProtoLogic_getLoadLibrarie
 }
 
 //public static native void connect(String host, int shortPort);
-JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_connect
+JNIEXPORT jboolean JNICALL Java_com_tencent_mars_proto_ProtoLogic_connect
 		(JNIEnv *_env, jclass clz, jstring host, jint shortPort) {
 	std::string ipAddress(ScopedJstring(_env, host).GetChar());
-	mars::stn::Connect(ipAddress, shortPort);
+	return mars::stn::Connect(ipAddress, shortPort);
 }
 
 

@@ -262,7 +262,7 @@ public class ProtoLogic {
         }
     }
 
-    public static native void connect(String host, int shortPort);
+    public static native boolean connect(String host, int shortPort);
 
     public static native void setAuthInfo(String userId, String token);
 
