@@ -857,9 +857,9 @@ namespace mars {
                 where2 += ")  ";
             }
             
-            std::string sql = "select c._conv_type, c._conv_target, c._conv_line, c._draft, c._istop, c._issilent, c._timestamp,m._id as mid, m._from as mfrom, m._cont_type as mconttype, m._cont_searchable as mcontsearchable, m._cont_push as mcontpush, m._cont as mcont, m._cont_data as mcontdata, m._cont_local as mcontlocal, m._cont_media_type as mcontmediatype, m._cont_remote_media_url as mcontrmurl, m._cont_local_media_path as mcontlmpath, m._direction as mdirection, m._status as mstatus, m._uid as muid, m._timestamp as mts, m._to as mto, m.c1 as mc1, m.c2 as mc2, m.c3 as mc3 from t_conversation c left join (select s.*, t.c1, t.c2, t.c3 from (SELECT max(_uid) as ts, sum(_status=3) as c1, sum(_status=4) as c2, sum(_status=5) as c3 FROM `t_message` where " + where;
+            std::string sql = "select c._conv_type, c._conv_target, c._conv_line, c._draft, c._istop, c._issilent, c._timestamp,m._id as mid, m._from as mfrom, m._cont_type as mconttype, m._cont_searchable as mcontsearchable, m._cont_push as mcontpush, m._cont as mcont, m._cont_data as mcontdata, m._cont_local as mcontlocal, m._cont_media_type as mcontmediatype, m._cont_remote_media_url as mcontrmurl, m._cont_local_media_path as mcontlmpath, m._direction as mdirection, m._status as mstatus, m._uid as muid, m._timestamp as mts, m._to as mto, m.c1 as mc1, m.c2 as mc2, m.c3 as mc3 from t_conversation c left join (select s.*, t.c1, t.c2, t.c3 from (SELECT max(_timestamp) as ts, sum(_status=3) as c1, sum(_status=4) as c2, sum(_status=5) as c3 FROM `t_message` where " + where;
             
-            sql += " group by _conv_type, _conv_line, _conv_target) t left join `t_message` as s on t.ts=s._uid) as m on c._conv_type=m._conv_type and c._conv_line=m._conv_line and c._conv_target=m._conv_target where ";
+            sql += " group by _conv_type, _conv_line, _conv_target) t left join `t_message` as s on t.ts=s._timestamp group by _conv_type, _conv_line, _conv_target) as m on c._conv_type=m._conv_type and c._conv_line=m._conv_line and c._conv_target=m._conv_target where ";
             
             sql += where2;
             
