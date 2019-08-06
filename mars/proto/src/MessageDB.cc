@@ -954,54 +954,30 @@ namespace mars {
                 return false;
             }
           
-#ifdef __ANDROID__
-            std::list<std::string> columns;
-            columns.push_back("_draft");
-            columns.push_back("_istop");
-            columns.push_back("_issilent");
-            columns.push_back("_timestamp");
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, columns, "_conv_type=? and _conv_line=? and _conv_target=?");
-#else
-            std::string sql = db->GetUpdateSql(CONVERSATION_TABLE_NAME, {"_draft", "_istop", "_issilent", "_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=?");
-#endif
+            std::string sql = db->GetDeleteSql(CONVERSATION_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
             int error = 0;
-            RecyclableStatement updateStatementHandle(db, sql, error);
+            RecyclableStatement statementHandle(db, sql, error);
             if (error != 0) {
                 return false;
             }
-            
-            db->Bind(updateStatementHandle, "", 1);
-            db->Bind(updateStatementHandle, 0, 2);
-            db->Bind(updateStatementHandle, 0, 3);
-            db->Bind(updateStatementHandle, 0, 4);
-            db->Bind(updateStatementHandle, conversationType, 5);
-            db->Bind(updateStatementHandle, line, 6);
-            db->Bind(updateStatementHandle, target, 7);
-            int count = db->ExecuteUpdate(updateStatementHandle);
-            
-            if (count > 0) {
+
+            db->Bind(statementHandle, conversationType, 1);
+            db->Bind(statementHandle, target, 2);
+            db->Bind(statementHandle, line, 3);
+
+            if (db->ExecuteDelete(statementHandle) > 0) {
+                if (clearMessage) {
+                    std::string sql2 = db->GetDeleteSql(MESSAGE_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
+                    RecyclableStatement statementHandle2(db, sql, error);
+                    db->Bind(statementHandle2, conversationType, 1);
+                    db->Bind(statementHandle2, target, 2);
+                    db->Bind(statementHandle2, line, 3);
+                    db->ExecuteDelete(statementHandle2);
+                }
+
                 return true;
             }
-            
-//
-//
-//            std::string sql = db->GetDeleteSql(CONVERSATION_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
-//            db->Bind(statementHandle, conversationType, 1);
-//            db->Bind(statementHandle, target, 2);
-//            db->Bind(statementHandle, line, 3);
-//
-//            if (db->ExecuteDelete(statementHandle) > 0) {
-//                if (clearMessage) {
-//                    RecyclableStatement statementHandle2 = db->GetDeleteStatement(MESSAGE_TABLE_NAME, "_conv_type=? and _conv_target=? and _conv_line=?");
-//                    db->Bind(statementHandle2, conversationType, 1);
-//                    db->Bind(statementHandle2, target, 2);
-//                    db->Bind(statementHandle2, line, 3);
-//                    db->ExecuteDelete(statementHandle2);
-//                }
-//
-//                return true;
-//            }
-//
+
             return false;
         }
         
