@@ -647,6 +647,7 @@ void fillMessageContent(TMessageContent &tcontent, MessageContent *content, int 
     content->mentionedTargets = tcontent.mentionedTargets;
     content->expireDuration = expireDuration;
     content->persistFlag = MessageDB::Instance()->getMessageFlag(content->type);
+    content->extra = tcontent.extra;
 }
 
 void fillConversation(TMessage &tmsg, Conversation *conversation) {
@@ -2237,6 +2238,8 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
 
 //            std::list<std::string> mentionedTargets;
             getValue(value, "mentionedTargets", mentionedTargets);
+            
+            getValue(value, "extra", extra);
         }
 
 
@@ -2294,6 +2297,9 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
             }
             writer.EndArray();
 
+            writer.String("extra");
+            writer.String(extra);
+            
             writer.EndObject();
         }
 

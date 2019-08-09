@@ -795,6 +795,10 @@ namespace mars {
                     UpgradeDB8Version9();
                     version = 9;
                 }
+                
+                if (version == 9) {
+                    UpgradeDB9Version10();
+                }
             }
         }
         
@@ -943,6 +947,14 @@ namespace mars {
                 }
                 
                 return SetDBVersion(9);
+            }
+            
+            bool DB2::UpgradeDB9Version10() {
+                std::string addColumn = "ALTER TABLE t_message ADD COLUMN _extra TEXT";
+                if (!executeSql(addColumn)) {
+                    return false;
+                }
+                return SetDBVersion(10);
             }
             
         bool DB2::CreateDB2Version1() {

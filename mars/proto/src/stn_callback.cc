@@ -35,11 +35,13 @@
 #include "mars/stn/stn.h"
 #include <sys/time.h>
 #include <time.h>
+#include <sys/types.h>
 
 #include "gzip/decompress.hpp"
 #include "gzip/utils.hpp"
 #include "gzip/version.hpp"
 
+#include <boost/lexical_cast.hpp>
 
 void (*shortlink_progress)(uint32_t task_id, uint32_t writed, uint32_t total) =
 [](uint32_t task_id, uint32_t writed, uint32_t total) {
@@ -264,6 +266,22 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType, bool refreshSett
             }
             
             if (saveToDb) {
+                if (tmsg.content.type == 80) {
+                    int64_t messageUid = boost::lexical_cast<int64_t>(tmsg.content.binaryContent);
+                    
+                    TMessage tOldMsg = MessageDB::Instance()->GetMessageByUid(messageUid);
+                    if(tOldMsg.messageId > 0) {
+                        
+                        tmsg.messageId = tOldMsg.messageId;
+                        MessageDB::Instance()->UpdateMessageContent(tmsg.messageId, tmsg.content);
+                        
+                        if(m_receiveMessageCB) {
+                            m_receiveMessageCB->onRecallMessage(tmsg.from, messageUid);
+                        }
+                        return;
+                    }
+                }
+                
                 long id = MessageDB::Instance()->InsertMessage(tmsg);
                 tmsg.messageId = id;
                 

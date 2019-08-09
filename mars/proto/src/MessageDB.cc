@@ -94,10 +94,10 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
-
+            columns.push_back("_extra");
             std::string sql = db->GetInsertSql(MESSAGE_TABLE_NAME, columns);
 #else
-            std::string sql = db->GetInsertSql(MESSAGE_TABLE_NAME, {"_conv_type","_conv_target","_conv_line","_from","_to","_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path","_direction","_status","_uid","_timestamp"});
+            std::string sql = db->GetInsertSql(MESSAGE_TABLE_NAME, {"_conv_type","_conv_target","_conv_line","_from","_to","_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path","_direction","_status","_uid","_timestamp","_extra"});
 #endif
             int error = 0;
             RecyclableStatement statementHandle(db, sql, error);
@@ -134,7 +134,7 @@ namespace mars {
             
             db->Bind(statementHandle, msg.messageUid, index++);
             db->Bind(statementHandle, msg.timestamp, index++);
-            
+            db->Bind(statementHandle, msg.content.extra, index++);
             db->ExecuteInsert(statementHandle, &(msg.messageId));
             return msg.messageId;
         }
@@ -227,9 +227,10 @@ namespace mars {
             columns.push_back("_cont_media_type");
             columns.push_back("_cont_remote_media_url");
             columns.push_back("_cont_local_media_path");
+            columns.push_back("_extra");
             std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, columns, "_uid=?");
 #else
-            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path"}, "_uid=?");
+            std::string sql = db->GetUpdateSql(MESSAGE_TABLE_NAME, {"_cont_type","_cont_searchable","_cont_push","_cont","_cont_data","_cont_local","_cont_media_type","_cont_remote_media_url","_cont_local_media_path","_extra"}, "_uid=?");
 #endif
             
             int error = 0;
@@ -247,7 +248,8 @@ namespace mars {
             db->Bind(statementHandle, content.mediaType, 7);
             db->Bind(statementHandle, content.remoteMediaUrl, 8);
             db->Bind(statementHandle, content.localMediaPath, 9);
-            db->Bind(statementHandle, messageUid, 10);
+            db->Bind(statementHandle, content.extra, 10);
+            db->Bind(statementHandle, messageUid, 11);
             
             int count = db->ExecuteUpdate(statementHandle);
             
@@ -857,7 +859,7 @@ namespace mars {
                 where2 += ")  ";
             }
             
-            std::string sql = "select c._conv_type, c._conv_target, c._conv_line, c._draft, c._istop, c._issilent, c._timestamp,m._id as mid, m._from as mfrom, m._cont_type as mconttype, m._cont_searchable as mcontsearchable, m._cont_push as mcontpush, m._cont as mcont, m._cont_data as mcontdata, m._cont_local as mcontlocal, m._cont_media_type as mcontmediatype, m._cont_remote_media_url as mcontrmurl, m._cont_local_media_path as mcontlmpath, m._direction as mdirection, m._status as mstatus, m._uid as muid, m._timestamp as mts, m._to as mto, m.c1 as mc1, m.c2 as mc2, m.c3 as mc3 from t_conversation c left join (select s.*, t.c1, t.c2, t.c3 from (SELECT max(_timestamp) as ts, sum(_status=3) as c1, sum(_status=4) as c2, sum(_status=5) as c3 FROM `t_message` where " + where;
+            std::string sql = "select c._conv_type, c._conv_target, c._conv_line, c._draft, c._istop, c._issilent, c._timestamp,m._id as mid, m._from as mfrom, m._cont_type as mconttype, m._cont_searchable as mcontsearchable, m._cont_push as mcontpush, m._cont as mcont, m._cont_data as mcontdata, m._cont_local as mcontlocal, m._cont_media_type as mcontmediatype, m._cont_remote_media_url as mcontrmurl, m._cont_local_media_path as mcontlmpath, m._direction as mdirection, m._status as mstatus, m._uid as muid, m._timestamp as mts, m._to as mto, m._extra as mextra, m.c1 as mc1, m.c2 as mc2, m.c3 as mc3 from t_conversation c left join (select s.*, t.c1, t.c2, t.c3 from (SELECT max(_timestamp) as ts, sum(_status=3) as c1, sum(_status=4) as c2, sum(_status=5) as c3 FROM `t_message` where " + where;
             
             sql += " group by _conv_type, _conv_line, _conv_target) t left join `t_message` as s on t.ts=s._timestamp group by _conv_type, _conv_line, _conv_target) as m on c._conv_type=m._conv_type and c._conv_line=m._conv_line and c._conv_target=m._conv_target where ";
             
@@ -918,6 +920,8 @@ namespace mars {
                         msg.to.push_back(s);
                     }
                 }
+                
+                msg.content.extra = db->getStringValue(statementHandle, index++);
                 
                 if (msg.messageUid > 0) {
                     conv.lastMessage = msg;
@@ -1234,6 +1238,7 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
+            columns.push_back("_extra");
             std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                          columns, where, orderBy, count);
 #else
@@ -1257,7 +1262,9 @@ namespace mars {
                     "_direction",
                     "_status",
                     "_uid",
-                    "_timestamp"}, where, orderBy, count);
+                    "_timestamp",
+                    "_extra"
+                }, where, orderBy, count);
 #endif
             
             int error = 0;
@@ -1316,7 +1323,7 @@ namespace mars {
                 msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
                 msg.messageUid = db->getBigIntValue(statementHandle, index++);
                 msg.timestamp = db->getBigIntValue(statementHandle, index++);
-                
+                msg.content.extra = db->getStringValue(statementHandle, index++);
                 result.push_back(msg);
             }
             if (old) {
@@ -1430,6 +1437,7 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
+            columns.push_back("_extra");
             std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                columns, where, orderBy, count);
 #else
@@ -1453,7 +1461,9 @@ namespace mars {
                                                    "_direction",
                                                    "_status",
                                                    "_uid",
-                                                   "_timestamp"}, where, orderBy, count);
+                                                   "_timestamp",
+                                                   "_extra"
+                                               }, where, orderBy, count);
 #endif
             
             int error = 0;
@@ -1507,7 +1517,7 @@ namespace mars {
                 msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
                 msg.messageUid = db->getBigIntValue(statementHandle, index++);
                 msg.timestamp = db->getBigIntValue(statementHandle, index++);
-                
+                msg.content.extra = db->getStringValue(statementHandle, index++);
                 result.push_back(msg);
             }
             if (desc) {
@@ -1610,6 +1620,7 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
+            columns.push_back("_extra");
             std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                columns, where, orderBy, count);
 #else
@@ -1633,7 +1644,9 @@ namespace mars {
                                                    "_direction",
                                                    "_status",
                                                    "_uid",
-                                                   "_timestamp"}, where, orderBy, count);
+                                                   "_timestamp",
+                                                   "_extra"
+                                               }, where, orderBy, count);
 #endif
             
             int error = 0;
@@ -1691,7 +1704,7 @@ namespace mars {
                 msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
                 msg.messageUid = db->getBigIntValue(statementHandle, index++);
                 msg.timestamp = db->getBigIntValue(statementHandle, index++);
-                
+                msg.content.extra = db->getStringValue(statementHandle, index++);
                 result.push_back(msg);
             }
             if (desc) {
@@ -1733,6 +1746,7 @@ namespace mars {
         columns.push_back("_status");
         columns.push_back("_uid");
         columns.push_back("_timestamp");
+          columns.push_back("_extra");
         std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      columns, where);
 #else
@@ -1756,7 +1770,9 @@ namespace mars {
                                                                        "_direction",
                                                                        "_status",
                                                                        "_uid",
-                                                                       "_timestamp"}, where);
+                                                                       "_timestamp",
+                                                                         "_extra"
+                                                                     }, where);
 #endif
           
           
@@ -1805,6 +1821,7 @@ namespace mars {
           msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
           msg.messageUid = db->getBigIntValue(statementHandle, index++);
           msg.timestamp = db->getBigIntValue(statementHandle, index++);
+          msg.content.extra = db->getStringValue(statementHandle, index++);
         }
         
         return msg;
@@ -1838,6 +1855,7 @@ namespace mars {
         columns.push_back("_status");
         columns.push_back("_uid");
         columns.push_back("_timestamp");
+          columns.push_back("_extra");
         std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                      columns, where);
 #else
@@ -1861,7 +1879,9 @@ namespace mars {
                                                                        "_direction",
                                                                        "_status",
                                                                        "_uid",
-                                                                       "_timestamp"}, where);
+                                                                       "_timestamp",
+                                                                         "_extra"
+                                                                     }, where);
 #endif
         
           int error = 0;
@@ -1907,6 +1927,7 @@ namespace mars {
           msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
           msg.messageUid = db->getBigIntValue(statementHandle, index++);
           msg.timestamp = db->getBigIntValue(statementHandle, index++);
+          msg.content.extra = db->getStringValue(statementHandle, index++);
         }
         
         return msg;
@@ -2280,6 +2301,7 @@ namespace mars {
             columns.push_back("_status");
             columns.push_back("_uid");
             columns.push_back("_timestamp");
+            columns.push_back("_extra");
             std::string sql = db->GetSelectSql(MESSAGE_TABLE_NAME,
                                                                          columns, "_conv_type=? and _conv_line=? and _conv_target=? and _cont_searchable like ?", "_timestamp desc", limit);
 #else
@@ -2303,7 +2325,9 @@ namespace mars {
                                                                                    "_direction",
                                                                                    "_status",
                                                                                    "_uid",
-                                                                                   "_timestamp"}, "_conv_type=? and _conv_line=? and _conv_target=? and _cont_searchable like ?", "_timestamp desc", limit);
+                                                                                   "_timestamp",
+                                                                                   "_extra"
+                                                                               }, "_conv_type=? and _conv_line=? and _conv_target=? and _cont_searchable like ?", "_timestamp desc", limit);
 #endif
             
             int error = 0;
@@ -2352,7 +2376,7 @@ namespace mars {
                 msg.status = (MessageStatus)db->getIntValue(statementHandle, index++);
                 msg.messageUid = db->getBigIntValue(statementHandle, index++);
                 msg.timestamp = db->getBigIntValue(statementHandle, index++);
-                
+                msg.content.extra = db->getStringValue(statementHandle, index++);
                 result.push_back(msg);
             }
             
