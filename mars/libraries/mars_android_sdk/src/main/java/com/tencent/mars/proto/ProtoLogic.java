@@ -304,6 +304,8 @@ public class ProtoLogic {
 
     public static native void clearUnreadStatus(int conversationType, String target, int line);
 
+    public static native void clearUnreadStatusEx(int[] conversationTypes, int[] lines);
+
     public static native void clearAllUnreadStatus();
 
     public static native void clearMessages(int conversationType, String target, int line);

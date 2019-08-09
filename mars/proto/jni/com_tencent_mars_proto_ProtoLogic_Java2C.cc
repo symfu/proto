@@ -1598,6 +1598,39 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_clearUnreadStatus
     mars::stn::MessageDB::Instance()->ClearUnreadStatus((int)type, jstringToString(_env, target), (int)line);
 }
 
+JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_clearUnreadStatusEx
+    (JNIEnv *_env, jclass clz, jintArray typeArray, jintArray lineArray) {
+
+    std::list<int> types;
+    int count = _env->GetArrayLength(typeArray);
+    if (count == 0) {
+        return;
+    }
+
+    jint *jtypes = _env->GetIntArrayElements(typeArray, NULL);
+    if (jtypes == NULL) {
+        return;
+    }
+    for (int i = 0; i < count; i++) {
+        types.push_back((int)(jtypes[i]));
+    }
+
+    std::list<int> ls;
+    count = _env->GetArrayLength(lineArray);
+    if (count == 0) {
+        return;
+    }
+
+    jtypes = _env->GetIntArrayElements(lineArray, NULL);
+    if (jtypes == NULL) {
+        return;
+    }
+    for (int i = 0; i < count; i++) {
+        ls.push_back((int)(jtypes[i]));
+    }
+    mars::stn::MessageDB::Instance()->ClearUnreadStatus(types, ls);
+}
+
 //public static native void clearAllUnreadStatus();
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_clearAllUnreadStatus
 		(JNIEnv *_env, jclass clz) {
