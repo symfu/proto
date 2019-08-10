@@ -933,10 +933,6 @@ namespace mars {
                             continue;
                         }
                     }
-                } else {
-                    if (conv.conversationType != 0) {
-                        continue;
-                    }
                 }
                 
                 conv.unreadCount.unreadMention = db->getIntValue(statementHandle, index++);
