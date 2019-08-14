@@ -232,6 +232,7 @@ jobject convertProtoMessage(JNIEnv *env, const mars::stn::TMessage *tMessage) {
     }
 
     SetObjectValue_Object(env, obj, jmsg, "setContent", objContent, "(Lcn/wildfirechat/model/ProtoMessageContent;)V");
+    SetObjectValue_String(env, objContent, jcontent, "setExtra", tMessage->content.extra.c_str());
 
     env->DeleteLocalRef(objContent);
 
