@@ -230,9 +230,9 @@ jobject convertProtoMessage(JNIEnv *env, const mars::stn::TMessage *tMessage) {
         }
         SetObjectValue_ObjectArray(env, objContent, jcontent, "setMentionedTargets", jo_array, "([Ljava/lang/String;)V");
     }
+    SetObjectValue_String(env, objContent, jcontent, "setExtra", tMessage->content.extra.c_str());
 
     SetObjectValue_Object(env, obj, jmsg, "setContent", objContent, "(Lcn/wildfirechat/model/ProtoMessageContent;)V");
-    SetObjectValue_String(env, objContent, jcontent, "setExtra", tMessage->content.extra.c_str());
 
     env->DeleteLocalRef(objContent);
 
@@ -1185,6 +1185,9 @@ mars::stn::TMessage convertMessage(JNIEnv *env, jobject msg) {
     tMessage.content.mentionedTargets = jarrayToStringList(env, jstringArray);
     env->DeleteLocalRef(jstringArray);
 
+    field = env->GetFieldID(jcontent, "extra", "Ljava/lang/String;");
+    str = (jstring)env->GetObjectField(content, field);
+    tMessage.content.extra = jstringToString(env, str);
 
     env->DeleteLocalRef(str);
 
@@ -1275,6 +1278,12 @@ void convertMessageContent(JNIEnv *env, jobject content, mars::stn::TMessageCont
     jobjectArray jstringArray = static_cast<jobjectArray>(env->GetObjectField(content, field));
     tcontent.mentionedTargets = jarrayToStringList(env, jstringArray);
     env->DeleteLocalRef(jstringArray);
+
+    field = env->GetFieldID(jcontent, "extra", "Ljava/lang/String;");
+    str = (jstring)env->GetObjectField(content, field);
+    tcontent.extra = jstringToString(env, str);
+
+    env->DeleteLocalRef(str);
 }
 
 

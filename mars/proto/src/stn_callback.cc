@@ -238,6 +238,7 @@ void StnCallBack::onPullMsgFailure(int errorCode, int pullType, bool refreshSett
             tmsg.content.remoteMediaUrl = pmsg.content.remoteMediaUrl;
             tmsg.content.mentionedType = pmsg.content.mentionedType;
             tmsg.content.mentionedTargets = pmsg.content.mentionedTargets;
+            tmsg.content.extra = pmsg.content.extra;
             
             tmsg.from = pmsg.fromUser;
             tmsg.to = pmsg.tos;
