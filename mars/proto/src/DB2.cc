@@ -957,6 +957,14 @@ namespace mars {
                 return SetDBVersion(10);
             }
             
+            bool DB2::UpgradeDB10Version11() {
+                std::string addColumn = "ALTER TABLE t_user_server ADD COLUMN _thumb_para TEXT DEFAULT NULL";
+                if (!executeSql(addColumn)) {
+                    return false;
+                }
+                return SetDBVersion(11);
+            }
+            
         bool DB2::CreateDB2Version1() {
             
             //create message table
@@ -1125,10 +1133,11 @@ namespace mars {
             columns2.push_back("_host");
             columns2.push_back("_long_port");
             columns2.push_back("_short_port");
+            columns2.push_back("_thumb_para");
             columns2.push_back("_update_dt");
             std::string sql = GetInsertSql("t_user_server", columns2, true);
 #else
-            std::string sql = GetInsertSql("t_user_server", {"_uid", "_host", "_long_port", "_short_port", "_update_dt"}, true);
+            std::string sql = GetInsertSql("t_user_server", {"_uid", "_host", "_long_port", "_short_port", "_thumb_para", "_update_dt"}, true);
 #endif
             int error = 0;
             RecyclableStatement statementHandle(m_db, sql, error);
@@ -1140,7 +1149,8 @@ namespace mars {
             Bind(statementHandle, userServer.host, 2);
             Bind(statementHandle, userServer.longLinkPort, 3);
             Bind(statementHandle, userServer.shortLinkPort, 4);
-            Bind(statementHandle, (int64_t)time(NULL), 5);
+            Bind(statementHandle, userServer.thumbPara, 5);
+            Bind(statementHandle, (int64_t)time(NULL), 6);
             
             if(!ExecuteInsert(statementHandle)) {
                 return false;

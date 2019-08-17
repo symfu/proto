@@ -534,6 +534,9 @@ public class ProtoLogic {
     public static native void joinChatRoom(String chatRoomId, IGeneralCallback callback);
     public static native void quitChatRoom(String chatRoomId, IGeneralCallback callback);
 
+
+    public static native String getImageThumbPara();
+
     public static native void registerMessageFlag(int contentType, int flag);
         /**
          * 获取底层已加载模块

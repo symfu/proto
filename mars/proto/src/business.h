@@ -149,6 +149,7 @@ extern std::string gToken;
             std::string host;
             int longLinkPort;
             int shortLinkPort;
+            std::string thumbPara;
             int64_t updateDt;
             virtual ~UserServerAddress(){}
         };

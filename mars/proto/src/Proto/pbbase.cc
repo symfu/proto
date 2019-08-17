@@ -151,6 +151,7 @@ namespace mars{
         const char* keyHost = "host";
         const char* keyLongPort = "long_port";
         const char* keyShortPort = "short_port";
+        const char* keyThumbPara = "thumb_para";
         const char* keySecret = "secret";
         const char* keySocial = "social";
         const char* keyCallback = "callback";

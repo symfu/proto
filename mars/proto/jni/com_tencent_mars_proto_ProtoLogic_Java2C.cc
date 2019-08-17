@@ -1754,6 +1754,13 @@ JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_quitChatRoom(JNIEn
     mars::stn::quitChatroom(jstringToString(_env, chatroomId), new IMGeneralOperationCallback(_env->NewGlobalRef(callback)));
 }
 
+//public static native String getImageThumbPara();
+JNIEXPORT jstring JNICALL Java_com_tencent_mars_proto_ProtoLogic_getImageThumbPara
+		(JNIEnv *_env, jclass clz) {
+    std::string setting = mars::stn::GetImageThumbPara();
+    return cstring2jstring(_env, setting.c_str());
+}
+
 //public static native void getChatRoomInfo(String chatRoomId, long lastUpdateDt, IGetChatRoomInfoCallback callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_getChatRoomInfo
 		(JNIEnv *_env, jclass clz, jstring chatroomId, jlong updateDt, jobject callback ) {

@@ -144,6 +144,8 @@ std::string g_chatroomId = "";
 
         static bool isRoutring = false;
 
+        static UserServerAddress GUS;
+        
 class BusinessRouteCallback : public MQTTPublishCallback {
 public:
     BusinessRouteCallback() : MQTTPublishCallback()  {}
@@ -162,12 +164,14 @@ public:
 
             gHost = response.host;
 
-            UserServerAddress us;
-            us.host = gHost;
-            us.longLinkPort = response.longPort;
-            us.shortLinkPort = response.shortPort;
+            
+            GUS.host = gHost;
+            GUS.longLinkPort = response.longPort;
+            GUS.shortLinkPort = response.shortPort;
+            GUS.thumbPara = response.thumbPara;
+            GUS.updateDt = (int64_t)time(NULL);
 
-            DB2::Instance()->UpdateUserServerAddress(gUserId, us);
+            DB2::Instance()->UpdateUserServerAddress(gUserId, GUS);
 
             MakesureLonglinkConnected();
             mars::baseevent::OnForeground(true);
@@ -281,24 +285,24 @@ bool Connect(const std::string& host, uint16_t shortLinkPort) {
 
     NetSource::SetShortlink(shortLinkPort, "");
 
-    UserServerAddress us = DB2::Instance()->GetUserServerAddress(gUserId);
-    if(!us.host.empty() && us.longLinkPort > 0 && us.shortLinkPort > 0) {
+    GUS = DB2::Instance()->GetUserServerAddress(gUserId);
+    if(!GUS.host.empty() && GUS.longLinkPort > 0 && GUS.shortLinkPort > 0) {
         std::vector<std::string> hosts;
-        hosts.push_back(us.host);
+        hosts.push_back(GUS.host);
         StnCallBack::Instance()->mAuthed = true;
         std::vector<uint16_t> longLinkPorts;
-        longLinkPorts.push_back(us.longLinkPort);
+        longLinkPorts.push_back(GUS.longLinkPort);
 
-        NetSource::SetShortlink(us.shortLinkPort, "");
+        NetSource::SetShortlink(GUS.shortLinkPort, "");
         NetSource::SetLongLink(hosts, longLinkPorts, "");
-        gHost = us.host;
+        gHost = GUS.host;
 
         MakesureLonglinkConnected();
 
         //首次连接如果离上次route超过1小时，强制刷新route信息。
         //在前后台切换或者网络切换时，超过12小时，强制刷新route信息。
         //你问我为啥是这个值，我也不知道！！！
-        if(((int64_t)time(NULL) - us.updateDt) > 3600) {
+        if(((int64_t)time(NULL) - GUS.updateDt) > 3600) {
             RequestRoute(true);
         }
     }
@@ -2070,6 +2074,10 @@ void reloadChannelInfoFromRemote(const std::string &channelId, int64_t updateDt,
     request->channelId = channelId;
     request->head = updateDt;
     publishTask(request, new LoadChannelPublishCallback(callback), channelPullTopic, false);
+}
+        
+std::string GetImageThumbPara() {
+    return GUS.thumbPara;
 }
 
 #if WFCHAT_PROTO_SERIALIZABLE

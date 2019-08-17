@@ -151,6 +151,7 @@ namespace mars{
         extern const char* keyHost;
         extern const char* keyLongPort;
         extern const char* keyShortPort;
+        extern const char* keyThumbPara;
         extern const char* keySecret;
         extern const char* keySocial;
         extern const char* keyChannelId;
