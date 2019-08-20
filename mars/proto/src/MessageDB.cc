@@ -2522,6 +2522,7 @@ namespace mars {
                 results.push_back(ui);
             }
             
+            xerror2(TSF"search friends result length:%0", results.size());
             return results;
         }
         
