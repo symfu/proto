@@ -2575,6 +2575,8 @@ jobject convertProtoGroupMember(JNIEnv *env, const mars::stn::TGroupMember &tGro
     //member.type = (WFCCGroupMemberType)it->type;
     SetObjectValue_Int(env, obj, jgroupMember, "setType", tGroupMember.type);
 
+    SetObjectValue_LongLong(env, obj, jgroupMember, "setUpdateDt", tGroupMember.updateDt);
+
     return obj;
 }
 
