@@ -798,6 +798,12 @@ namespace mars {
                 
                 if (version == 9) {
                     UpgradeDB9Version10();
+                    version = 10;
+                }
+
+                if (version == 10){
+                    UpgradeDB10Version11();
+
                 }
             }
         }
