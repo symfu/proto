@@ -112,6 +112,7 @@ const std::string getGroupMemberTopic = "GPGM";
 const std::string transferGroupTopic = "GTG";
 const std::string setGroupManagerTopic = "GSM";
 const std::string getQiniuUploadTokenTopic = "GQNUT";
+const std::string getMediaUploadTokenTopic = "GMUT";
 const std::string modifyMyInfoTopic = "MMI";
 const std::string AddFriendRequestTopic = "FAR";
 const std::string HandleFriendRequestTopic = "FHR";
@@ -701,23 +702,28 @@ public:
 };
 class GetUploadTokenCallback : public MQTTPublishCallback {
 public:
-    GetUploadTokenCallback(UpdateMediaCallback *cb, const std::string md) : MQTTPublishCallback(), callback(cb), mediaData(md) {}
+    GetUploadTokenCallback(UpdateMediaCallback *cb, const std::string &md, const std::string &key) : MQTTPublishCallback(), callback(cb), mediaData(md), mKey(key) {}
     UpdateMediaCallback *callback;
     std::string mediaData;
     long mMid;
     TMessage msg;
+    std::string mKey;
     void onSuccess(const unsigned char* data, size_t len) {
         GetUploadTokenResult result;
         if(result.unserializeFromPBData((const void*)data, (int)len)) {
-            UploadTask *uploadTask = new UploadTask(mediaData, result.token, msg.content.mediaType, new UploadQiniuCallback(callback, result.domain));
-            uploadTask->cgi = "/fs";//*/result.server();
+            UploadTask *uploadTask = new UploadTask(mediaData, result.token, msg.content.mediaType, mKey, result.type, result.date, new UploadQiniuCallback(callback, result.domain));
+            if (result.type == 0) {
+                uploadTask->cgi = "/fs";//*/result.server();
+            } else {
+                uploadTask->cgi = "/" + mKey;
+            }
+            
             std::string server = result.server;
             uploadTask->shortlink_host_list.push_back(server);
             StartTask(*uploadTask);
         } else {
             callback->onFalure(kEcProtoCorruptData);
         }
-
 
         delete this;
     };
@@ -758,6 +764,20 @@ public:
     virtual ~UploadMediaForSendCallback() {}
 };
 
+        std::string getMediaPath(int mediaType) {
+            std::string fileName;
+            std::stringstream ss;
+            ss << mars::app::GetAccountUserName();
+            ss << "-";
+            ss << mediaType;
+            ss << "-";
+            ss << time(NULL);
+            ss << "-";
+            ss << rand()%10000;
+            ss >> fileName;
+            return fileName;
+        }
+        
 int (*sendMessage)(TMessage &tmsg, SendMsgCallback *callback, int expireDuration)
 = [](TMessage &tmsg, SendMsgCallback *callback, int expireDuration) {
     tmsg.timestamp = ((int64_t)time(NULL))*1000;
@@ -789,12 +809,12 @@ int (*sendMessage)(TMessage &tmsg, SendMsgCallback *callback, int expireDuration
         file.close();
         std::string md(buffer, size);
         delete [] buffer;
-        mars::stn::MQTTPublishTask *publishTask = new mars::stn::MQTTPublishTask(new GetUploadTokenCallback(new UploadMediaForSendCallback(callback, tmsg, id, expireDuration), md));
-        publishTask->topic = getQiniuUploadTokenTopic;
-        publishTask->length = 1;
-        publishTask->body = new unsigned char[1];
-        *(publishTask->body) = (unsigned char)tmsg.content.mediaType;
-        mars::stn::StartTask(*publishTask);
+   
+        std::string key = getMediaPath(tmsg.content.mediaType);
+        GetUploadTokenRequest *request = new GetUploadTokenRequest();
+        request->type = tmsg.content.mediaType;
+        request->path = key;
+        publishTask(request, new GetUploadTokenCallback(new UploadMediaForSendCallback(callback, tmsg, id, expireDuration), md, key), getMediaUploadTokenTopic, false);
     } else {
         sendSavedMsg(id, tmsg, callback, expireDuration);
     }
@@ -862,7 +882,7 @@ void loadRemoteMessages(const TConversation &conv, long long beforeUid, int coun
 }
 
 int uploadGeneralMedia(std::string mediaData, int mediaType, UpdateMediaCallback *callback) {
-    mars::stn::MQTTPublishTask *publishTask = new mars::stn::MQTTPublishTask(new GetUploadTokenCallback(callback, mediaData));
+    mars::stn::MQTTPublishTask *publishTask = new mars::stn::MQTTPublishTask(new GetUploadTokenCallback(callback, mediaData, getMediaPath(mediaType)));
     publishTask->topic = getQiniuUploadTokenTopic;
     publishTask->length = sizeof(int);
     publishTask->body = new unsigned char[publishTask->length];
@@ -1747,7 +1767,7 @@ const std::string MQTTTask::description() const {
     ss << topic;
     return ss.str();
 }
-UploadTask::UploadTask(const std::string &data, const std::string &token, int mediaType, UploadMediaCallback *callback) : Task(), mData(data), mToken(token), mMediaType(mediaType), mCallback(callback) {
+        UploadTask::UploadTask(const std::string &data, const std::string &token, int mediaType, const std::string &key, int type, const std::string &date, UploadMediaCallback *callback) : Task(), mData(data), mToken(token), mMediaType(mediaType), mKey(key), mType(type), mDate(date), mCallback(callback) {
     user_context = this;
     channel_select = ChannelType_ShortConn;
     cmdid = UPLOAD_SEND_OUT_CMDID;

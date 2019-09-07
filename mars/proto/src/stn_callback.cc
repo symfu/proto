@@ -576,50 +576,64 @@ void StnCallBack::OnPush(uint64_t _channel_id, uint32_t _cmdid, uint32_t _taskid
         
 static const std::string UploadBoundary = "--727f6ee7446cbf7263";
 
-void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, AutoBuffer& _extend, unsigned char mediaType, const std::string &uploadToken) {
+        void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, AutoBuffer& _extend, unsigned char mediaType, const std::string &uploadToken, const std::string &key, int type, const std::string &date) {
     
-    std::string fileName;
-    std::stringstream ss;
-    ss << mars::app::GetAccountUserName();
-    ss << "-";
-    ss << time(NULL);
-    ss << "-";
-    ss << rand()%10000;
-    ss >> fileName;
+            if (type < 2) {
+                std::string fileName = key;
+                
+                std::string mimeType;
+                if (mediaType == 3) {
+                    mimeType = "image_jpeg";
+                } else if(mediaType == 2) {
+                    mimeType = "audio_amr";
+                } else {
+                    mimeType = "application_octet-stream";
+                }
+                
+                std::string firstBody = "--" + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"token\"\r\n\r\n"
+                + uploadToken + "\r\n--" + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"key\"\r\n\r\n" + fileName + "\r\n--"
+                + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\nContent-Type: " + mimeType + "\r\n\r\n";
+                
+                std::string lastBody =  "\r\n--" + UploadBoundary + "--";
+                
+                unsigned int dataLen = (unsigned int)(data.size() + firstBody.length() + lastBody.length());
+                char len_str[32] = {0};
+                snprintf(len_str, sizeof(len_str), "%u", dataLen);
+                
+                _out_buff.AllocWrite(dataLen);
+                _out_buff.Write(firstBody.c_str(), firstBody.length());
+                _out_buff.Write(data.c_str(), data.length());
+                _out_buff.Write(lastBody.c_str(), lastBody.length());
+                
+                std::map<std::string, std::string> paramMap;
+                paramMap["method"] = "POST";
+                paramMap[http::HeaderFields::KStringContentType] = "multipart/form-data; boundary=" + UploadBoundary;
+                paramMap[http::HeaderFields::KStringContentLength] = len_str;
+                
+                
+                std::string mapStr = mapToString(paramMap);
+                _extend.AllocWrite(mapStr.size());
+                _extend.Write(mapStr.c_str(), mapStr.size());
+            } else if(type == 2) {
+                unsigned int dataLen = data.size();
+                char len_str[32] = {0};
+                snprintf(len_str, sizeof(len_str), "%u", dataLen);
+                
+                _out_buff.AllocWrite(dataLen);
+                _out_buff.Write(data.c_str(), data.length());
+                
+                std::map<std::string, std::string> paramMap;
+                paramMap["method"] = "PUT";
+                paramMap[http::HeaderFields::KStringContentType] = "application/octet-stream";
+                paramMap[http::HeaderFields::KStringContentLength] = len_str;
+                paramMap[http::HeaderFields::KStringAuthorization] = uploadToken;
+                paramMap[http::HeaderFields::KStringDate] = date;
+                
+                std::string mapStr = mapToString(paramMap);
+                _extend.AllocWrite(mapStr.size());
+                _extend.Write(mapStr.c_str(), mapStr.size());
+            }
     
-    std::string mimeType;
-    if (mediaType == 3) {
-        mimeType = "image_jpeg";
-    } else if(mediaType == 2) {
-        mimeType = "audio_amr";
-    } else {
-        mimeType = "application_octet-stream";
-    }
-    
-    std::string firstBody = "--" + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"token\"\r\n\r\n"
-    + uploadToken + "\r\n--" + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"key\"\r\n\r\n" + fileName + "\r\n--"
-    + UploadBoundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\nContent-Type: " + mimeType + "\r\n\r\n";
-    
-    std::string lastBody =  "\r\n--" + UploadBoundary + "--";
-    
-    unsigned int dataLen = (unsigned int)(data.size() + firstBody.length() + lastBody.length());
-    char len_str[32] = {0};
-    snprintf(len_str, sizeof(len_str), "%u", dataLen);
-    
-    _out_buff.AllocWrite(dataLen);
-    _out_buff.Write(firstBody.c_str(), firstBody.length());
-    _out_buff.Write(data.c_str(), data.length());
-    _out_buff.Write(lastBody.c_str(), lastBody.length());
-    
-    std::map<std::string, std::string> paramMap;
-    paramMap["method"] = "POST";
-    paramMap[http::HeaderFields::KStringContentType] = "multipart/form-data; boundary=" + UploadBoundary;
-    paramMap[http::HeaderFields::KStringContentLength] = len_str;
-    
-    
-    std::string mapStr = mapToString(paramMap);
-    _extend.AllocWrite(mapStr.size());
-    _extend.Write(mapStr.c_str(), mapStr.size());
 }
 
 
@@ -628,7 +642,7 @@ bool StnCallBack::Req2Buf(uint32_t _taskid, void* const _user_context, AutoBuffe
     Task *task = (Task *)_user_context;
     if(task->cmdid == UPLOAD_SEND_OUT_CMDID) {
         UploadTask *uploadTask = (UploadTask *)_user_context;
-        packageUploadMediaData(uploadTask->mData, _outbuffer, _extend, uploadTask->mMediaType, uploadTask->mToken);;
+        packageUploadMediaData(uploadTask->mData, _outbuffer, _extend, uploadTask->mMediaType, uploadTask->mToken, uploadTask->mKey, uploadTask->mType, uploadTask->mDate);
     } else { //MQTT tasks
       const MQTTTask *mqttTask = (const MQTTTask *)_user_context;
       if (mqttTask->type == MQTT_MSG_PUBLISH) {
@@ -672,24 +686,29 @@ int StnCallBack::Buf2Resp(uint32_t _taskid, void* const _user_context, const Aut
     
     if(task->cmdid == UPLOAD_SEND_OUT_CMDID) {
         UploadTask *uploadTask = (UploadTask *)_user_context;
-
-        std::string result((char *)_inbuffer.Ptr(), _inbuffer.Length());
-        long index = result.find("\"key\":\"");
-        if (index > 0 && index < INT_MAX) {
-            std::string rest = result.substr(index + 7);
-            index = rest.find("\"");
+        if (uploadTask->mType < 2) {
+            std::string result((char *)_inbuffer.Ptr(), _inbuffer.Length());
+            long index = result.find("\"key\":\"");
             if (index > 0 && index < INT_MAX) {
-                std::string key = rest.substr(0, index);
-                if (!key.empty()) {
-                    xinfo2(TSF"PROTO -> Upload success:%0", key);
-                    uploadTask->mCallback->onSuccess(key);
-                    return mars::stn::kTaskFailHandleNormal;
+                std::string rest = result.substr(index + 7);
+                index = rest.find("\"");
+                if (index > 0 && index < INT_MAX) {
+                    std::string key = rest.substr(0, index);
+                    if (!key.empty()) {
+                        xinfo2(TSF"PROTO -> Upload success:%0", key);
+                        uploadTask->mCallback->onSuccess(key);
+                        return mars::stn::kTaskFailHandleNormal;
+                    }
                 }
             }
+            xinfo2(TSF"PROTO -> Upload failure:%0", result);
+            uploadTask->mCallback->onFalure(-1);
+            return mars::stn::kTaskFailHandleNormal;
+        } else {
+            uploadTask->mCallback->onSuccess(uploadTask->mKey);
+            return mars::stn::kTaskFailHandleNormal;
         }
-        xinfo2(TSF"PROTO -> Upload failure:%0", result);
-        uploadTask->mCallback->onFalure(-1);
-        return mars::stn::kTaskFailHandleNormal;
+        
     }
     
   const MQTTTask *mqttTask = (const MQTTTask *)_user_context;

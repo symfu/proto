@@ -79,11 +79,14 @@ public:
 
 class UploadTask : public Task {
 public:
-    UploadTask(const std::string &data, const std::string &token, int mediaType, UploadMediaCallback *callback);
+    UploadTask(const std::string &data, const std::string &token, int mediaType, const std::string &key, int type, const std::string &date, UploadMediaCallback *callback);
 public:
     std::string mData;
     std::string mToken;
     unsigned char mMediaType;
+    std::string mKey;
+    int mType;
+    std::string mDate;
     UploadMediaCallback *mCallback;
     virtual ~UploadTask() {}
 };

@@ -51,6 +51,10 @@ namespace mars{
         extern const char* keyServer;
         extern const char* keyPort;
         
+        extern const char* keyMType;
+        extern const char* keyMPath;
+        extern const char* keyDate;
+        
         extern const char* keyTargetId;
         extern const char* keyName;
         extern const char* keyPortrait;

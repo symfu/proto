@@ -46,6 +46,11 @@ namespace mars{
         const char* keyServer = "server";
         const char* keyPort = "port";
         
+        const char* keyMType = "media_type";
+        const char* keyMPath = "media_path";
+        const char* keyDate = "date";
+        
+        
         
         const char* keyTargetId = "target_id";
         const char* keyName = "name";
