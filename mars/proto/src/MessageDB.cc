@@ -2486,14 +2486,14 @@ namespace mars {
             columnRight.push_back("_extra");
             columnRight.push_back("_update_dt");
             std::string sql = db->GetSelectSqlEx(FRIEND_TABLE_NAME,
-                                                                         columnLeft,USER_TABLE_NAME, columnRight, "l._friend_uid = r._uid and l._state = 0 and r._display_name like ? ", "", limit);
+                                                                         columnLeft,USER_TABLE_NAME, columnRight, "l._friend_uid = r._uid and l._state = 0 and (r._display_name like ? or l._alias like ?) ", "", limit);
 #else
             std::string sql = db->GetSelectSqlEx(FRIEND_TABLE_NAME,
                                                                          {
                                                                          },
                                                                           USER_TABLE_NAME,
                                                                            {"_uid",  "_name", "_display_name", "_portrait", "_gender", "_mobile", "_email", "_address", "_company", "_social", "_extra", "_update_dt"},
-                                                                           "l._friend_uid = r._uid and l._state = 0 and r._display_name like ? ", "", limit);
+                                                                           "l._friend_uid = r._uid and l._state = 0 and (r._display_name like ? or l._alias like ?) ", "", limit);
 #endif
             
             int error = 0;
@@ -2503,6 +2503,7 @@ namespace mars {
             }
             
             db->Bind(statementHandle, "%" + keyword + "%", 1);
+            db->Bind(statementHandle, "%" + keyword + "%", 2);
             std::list<TUserInfo> results;
             
             while (statementHandle.executeSelect()) {
