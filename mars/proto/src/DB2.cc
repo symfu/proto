@@ -1176,9 +1176,10 @@ namespace mars {
             columns.push_back("_long_port");
             columns.push_back("_short_port");
             columns.push_back("_update_dt");
+            columns.push_back("_thumb_para");
             std::string sql = GetSelectSql("t_user_server", columns, "_uid=?");
 #else
-            std::string sql = GetSelectSql("t_user_server", {"_host", "_long_port", "_short_port", "_update_dt"}, "_uid=?");
+            std::string sql = GetSelectSql("t_user_server", {"_host", "_long_port", "_short_port", "_update_dt", "_thumb_para"}, "_uid=?");
 #endif
             int error = 0;
             RecyclableStatement statementHandle(m_db, sql, error);
@@ -1194,6 +1195,7 @@ namespace mars {
                 result.longLinkPort = getIntValue(statementHandle, 1);
                 result.shortLinkPort = getIntValue(statementHandle, 2);
                 result.updateDt = getBigIntValue(statementHandle, 3);
+                result.thumbPara = getStringValue(statementHandle, 4);
             }
             
             return result;
