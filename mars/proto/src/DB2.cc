@@ -65,7 +65,22 @@ namespace mars {
                 }
                 return false;
             }
-            
+        
+        bool RecyclableStatement::executeSelectEx(int &isDbCorrupt) {
+            int error = sqlite3_step(m_stmt);
+            isDbCorrupt = 0;
+            if (error == SQLITE_ROW) {
+                return true;
+            }
+            if (error != SQLITE_OK && error != SQLITE_DONE) {
+                xerror2(TSF"sql select error:%0, errorInfo:%1", error, getError(m_db));
+                if (error == SQLITE_CORRUPT || error == SQLITE_MISUSE) {
+                    isDbCorrupt = 1;
+                }
+            }
+            return false;
+        }
+        
             bool RecyclableStatement::executeInsert(long *rowId) {
                 int error = sqlite3_step(m_stmt);
                 long lid = (long)sqlite3_last_insert_rowid(m_db);
@@ -261,21 +276,27 @@ namespace mars {
             
             return true;
         }
-        void DB2::Open(const std::string &sec) {
-            secret = sec;
+        void DB2::Open(const std::string &sec, bool rebuildDb) {
+            secret = "1234567890";
             
             std::string path = app::GetAppFilePath() + "/" + app::GetDeviceInfo().clientid;
             
             std::string DB2Path = path + "/" + DB2_NAME;
+            
+            closeDB();
+            sqlite3_shutdown();
+            
+            if (rebuildDb) {
+                boost::filesystem::remove(DB2Path);
+            }
+            
             if(!boost::filesystem::exists(path)) {
                 boost::filesystem::create_directories(path);
-                newCreatedDB = true;
             }
             
             xerror2(TSF"open db %0",DB2Path.c_str());
             
-            closeDB();
-            sqlite3_shutdown();
+            
             int rc = sqlite3_config(SQLITE_CONFIG_SERIALIZED);
             if (rc != SQLITE_OK)
             {
@@ -304,7 +325,7 @@ namespace mars {
                 return;
             }
             
-            rc = sqlite3_key(m_db, sec.c_str(), int(sec.size()));
+            rc = sqlite3_key(m_db, secret.c_str(), int(secret.size()));
             if (rc != SQLITE_OK) {
                 xerror2(TSF"open error:%0 error:%1",getError(m_db), rc);
                 closeDB();
@@ -715,7 +736,7 @@ namespace mars {
             return statementHandle.getBlobValue(index, size);
         }
         
-        bool DB2::IsTableExist(std::string tableName)
+        int DB2::IsTableExist(std::string tableName)
         {
 #ifdef __ANDROID__
             std::list<std::string> columns;
@@ -731,13 +752,25 @@ namespace mars {
                 return false;
             }
             statement.bind(1, tableName);
-            return statement.executeSelect();
+            int corrupt = 0;
+            bool exist = statement.executeSelectEx(corrupt);
+            if (exist) {
+                return 1;
+            } else if(corrupt == 0){
+                return 0;
+            } else {
+                return -1;
+            }
         }
 
         
-        void DB2::Upgrade() {
-            if(!IsTableExist(VERSION_TABLE_NAME)) {
+        int DB2::Upgrade() {
+            int tableStatus = IsTableExist(VERSION_TABLE_NAME);
+            if(tableStatus == 0) {
+                newCreatedDB = true;
                 CreateDB2Version1();
+            } else if(tableStatus == -1) {
+                return -1;
             }
             
 #ifdef __ANDROID__
@@ -751,7 +784,7 @@ namespace mars {
             int error = 0;
             RecyclableStatement statementHandle(m_db, sql, error);
             if (error != 0) {
-                return;
+                return -1;
             }
             
             if (statementHandle.executeSelect()) {
@@ -806,6 +839,7 @@ namespace mars {
 
                 }
             }
+            return 0;
         }
         
         bool DB2::executeSql(const std::string &sql) {

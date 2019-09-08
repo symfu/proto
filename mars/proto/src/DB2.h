@@ -27,6 +27,7 @@ namespace mars {
             RecyclableStatement(sqlite3 *db, const std::string &sql, int &error);
             RecyclableStatement(DB2 *db2, const std::string &sql, int &error);
             bool executeSelect();
+            bool executeSelectEx(int &isDbCorrupt);
             bool executeInsert(long *rowId);
             bool executeDelete(long *changes);
             bool executeUpdate(long *changes);
@@ -78,8 +79,8 @@ namespace mars {
             
         public:
             static DB2* Instance();
-            void Open(const std::string &sec);
-            void Upgrade();
+            void Open(const std::string &sec, bool rebuildDb);
+            int Upgrade();
             bool isOpened();
             bool CheckDB(const std::string &sec);
 #ifdef __ANDROID__
@@ -151,7 +152,7 @@ namespace mars {
             bool UpgradeDB9Version10();
             bool UpgradeDB10Version11();
             
-            bool IsTableExist(std::string tableName);
+            int IsTableExist(std::string tableName);
             bool executeSql(const std::string &sql);
             bool opened;
             sqlite3 *m_db;

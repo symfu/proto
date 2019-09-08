@@ -1845,8 +1845,13 @@ bool setAuthInfo(const std::string &userId, const std::string &token) {
         return false;
     }
     mars::stn::SetCallback(StnCallBack::Instance());
-    DB2::Instance()->Open(gDbSecret);
-    DB2::Instance()->Upgrade();
+    DB2::Instance()->Open(gDbSecret, false);
+    
+    if(DB2::Instance()->Upgrade() == -1) {
+        DB2::Instance()->Open(gDbSecret, true);
+        DB2::Instance()->Upgrade();
+    }
+    
     MessageDB::Instance()->FailSendingMessages();
     StnCallBack::Instance()->onDBOpened();
     mqtt_init(mars::app::GetDeviceInfo().clientid.c_str());
