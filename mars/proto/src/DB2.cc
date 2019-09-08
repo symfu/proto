@@ -277,10 +277,9 @@ namespace mars {
             return true;
         }
         void DB2::Open(const std::string &sec, bool rebuildDb) {
-            secret = "1234567890";
+            secret = sec;
             
             std::string path = app::GetAppFilePath() + "/" + app::GetDeviceInfo().clientid;
-            
             std::string DB2Path = path + "/" + DB2_NAME;
             
             closeDB();
