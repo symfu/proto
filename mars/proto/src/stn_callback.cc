@@ -457,10 +457,11 @@ void StnCallBack::PullMessage(int64_t head, int type, bool retry, bool refreshSe
                     if (maxDt > 0) {
                         StnCallBack::Instance()->settingHead = maxDt;
                     }
+                    MessageDB::Instance()->UpdateUserSettings(retList);
+
                   if(StnCallBack::Instance()->m_getSettingCB != NULL) {
                     StnCallBack::Instance()->m_getSettingCB->onSuccess(retList.size() > 0);
                   }
-                    MessageDB::Instance()->UpdateUserSettings(retList);
                 } else {
                   if(StnCallBack::Instance()->m_getSettingCB != NULL) {
                     StnCallBack::Instance()->m_getSettingCB->onFalure(-1);
