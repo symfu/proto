@@ -923,7 +923,7 @@ namespace mars {
                 
                 msg.content.extra = db->getStringValue(statementHandle, index++);
                 
-                if (msg.messageUid > 0) {
+                if (msg.messageId > 0) {
                     conv.lastMessage = msg;
                     if (conv.conversationType == 1) {
                         if (conv.lastMessage.content.type == 108) {
