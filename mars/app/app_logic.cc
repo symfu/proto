@@ -192,7 +192,7 @@ namespace app {
 		xassert2(sg_callback != NULL);
         
         static DeviceInfo device_info;
-        if (!device_info.clientid.empty() || !device_info.deviceversion.empty()) {
+        if (!device_info.clientid.empty()) {
             return device_info;
         }
         
