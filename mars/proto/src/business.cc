@@ -714,6 +714,8 @@ public:
             UploadTask *uploadTask = new UploadTask(mediaData, result.token, msg.content.mediaType, mKey, result.type, result.date, new UploadQiniuCallback(callback, result.domain));
             if (result.type == 0) {
                 uploadTask->cgi = "/fs";//*/result.server();
+            } else if (result.type == 3){
+                uploadTask->cgi = "/" + result.path + "/" + mKey;
             } else {
                 uploadTask->cgi = "/" + mKey;
             }

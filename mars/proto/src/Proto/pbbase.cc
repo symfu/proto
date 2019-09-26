@@ -49,6 +49,7 @@ namespace mars{
         const char* keyMType = "media_type";
         const char* keyMPath = "media_path";
         const char* keyDate = "date";
+        const char* keyPath = "path";
         
         
         

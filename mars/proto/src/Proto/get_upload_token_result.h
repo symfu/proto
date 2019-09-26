@@ -47,6 +47,7 @@ namespace mars{
             std::string token;
             std::string server;
             std::string date;
+            std::string path;
             int type;
             int port;
         };

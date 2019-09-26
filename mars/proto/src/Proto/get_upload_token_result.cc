@@ -41,6 +41,7 @@ namespace mars{
             port = getInt(msg, keyPort, 0);
             type = getInt(msg, keyType, 0);
             date = getString(msg, keyDate, 0);
+            path = getString(msg, keyPath, 0);
             
             if(destroy)
             finishRead(msg);
@@ -54,6 +55,7 @@ namespace mars{
             setInt(msg, keyPort, port);
             setInt(msg, keyType, type);
             setString(msg, keyDate, date);
+            setString(msg, keyPath, path);
         }
     }
 }

@@ -614,7 +614,7 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                 std::string mapStr = mapToString(paramMap);
                 _extend.AllocWrite(mapStr.size());
                 _extend.Write(mapStr.c_str(), mapStr.size());
-            } else if(type == 2) {
+            } else if(type >= 2) {
                 unsigned int dataLen = data.size();
                 char len_str[32] = {0};
                 snprintf(len_str, sizeof(len_str), "%u", dataLen);
@@ -627,7 +627,11 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                 paramMap[http::HeaderFields::KStringContentType] = "application/octet-stream";
                 paramMap[http::HeaderFields::KStringContentLength] = len_str;
                 paramMap[http::HeaderFields::KStringAuthorization] = uploadToken;
-                paramMap[http::HeaderFields::KStringDate] = date;
+                if(type == 2) {
+                    paramMap[http::HeaderFields::KStringDate] = date;
+                } else if (type == 3) {
+                    paramMap["x-amz-date"] = date;
+                }
                 
                 std::string mapStr = mapToString(paramMap);
                 _extend.AllocWrite(mapStr.size());
