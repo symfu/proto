@@ -36,7 +36,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <sys/types.h>
-
+#include <algorithm>
 #include "gzip/decompress.hpp"
 #include "gzip/utils.hpp"
 #include "gzip/version.hpp"
@@ -576,13 +576,13 @@ void StnCallBack::OnPush(uint64_t _channel_id, uint32_t _cmdid, uint32_t _taskid
         
 static const std::string UploadBoundary = "--727f6ee7446cbf7263";
 
-        void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, AutoBuffer& _extend, unsigned char mediaType, const std::string &uploadToken, const std::string &key, int type, const std::string &date) {
+        void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, AutoBuffer& _extend, unsigned char mediaType, const std::string &uploadToken, const std::string &key, int type, const std::string &date, const std::string &fileName) {
     
             if (type < 2) {
                 std::string fileName = key;
                 
                 std::string mimeType;
-                if (mediaType == 3) {
+                if (mediaType == 1) {
                     mimeType = "image_jpeg";
                 } else if(mediaType == 2) {
                     mimeType = "audio_amr";
@@ -615,7 +615,7 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                 _extend.AllocWrite(mapStr.size());
                 _extend.Write(mapStr.c_str(), mapStr.size());
             } else if(type >= 2) {
-                unsigned int dataLen = data.size();
+                unsigned int dataLen = (unsigned int)data.size();
                 char len_str[32] = {0};
                 snprintf(len_str, sizeof(len_str), "%u", dataLen);
                 
@@ -624,7 +624,52 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                 
                 std::map<std::string, std::string> paramMap;
                 paramMap["method"] = "PUT";
-                paramMap[http::HeaderFields::KStringContentType] = "application/octet-stream";
+                
+                
+                std::string subfix;
+                size_t pos = fileName.find_last_of('.');
+                if (pos > 0 && pos < fileName.length()-1) {
+                    subfix = fileName.substr(pos+1, fileName.length() - pos+1);
+                }
+                
+                if (mediaType == 1) {
+                    paramMap[http::HeaderFields::KStringContentType] = "image/jpeg";
+                } else if(mediaType == 2) {
+                    paramMap[http::HeaderFields::KStringContentType] = "audio/amr";
+                } else if(mediaType == 3) {
+                    paramMap[http::HeaderFields::KStringContentType] = "video/mp4";
+                } else {
+                    if (!subfix.empty()) {
+                        transform(subfix.begin(), subfix.end(), subfix.begin(), ::tolower);
+                        if (subfix == "jpg" || subfix == "jpeg") {
+                            paramMap[http::HeaderFields::KStringContentType] = "image/jpeg";
+                        } else if(subfix == "gif") {
+                            paramMap[http::HeaderFields::KStringContentType] = "image/gif";
+                        } else if(subfix == "png") {
+                            paramMap[http::HeaderFields::KStringContentType] = "image/png";
+                        } else if(subfix == "mp3") {
+                            paramMap[http::HeaderFields::KStringContentType] = "audio/mpeg";
+                        } else if(subfix == "mp4") {
+                            paramMap[http::HeaderFields::KStringContentType] = "video/mp4";
+                        } else if(subfix == "doc") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-word";
+                        } else if(subfix == "xls") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-xls";
+                        } else if(subfix == "ppt") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-powerpoint";
+                        } else if(subfix == "pps") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-powerpoint";
+                        } else if(subfix == "pdf") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/pdf";
+                        } else if(subfix == "xml") {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-xml";
+                        } else {
+                            paramMap[http::HeaderFields::KStringContentType] = "application/octet-stream";
+                        }
+                    } else {
+                        paramMap[http::HeaderFields::KStringContentType] = "application/octet-stream";
+                    }
+                }
                 paramMap[http::HeaderFields::KStringContentLength] = len_str;
                 paramMap[http::HeaderFields::KStringAuthorization] = uploadToken;
                 if(type == 2) {
@@ -646,7 +691,7 @@ bool StnCallBack::Req2Buf(uint32_t _taskid, void* const _user_context, AutoBuffe
     Task *task = (Task *)_user_context;
     if(task->cmdid == UPLOAD_SEND_OUT_CMDID) {
         UploadTask *uploadTask = (UploadTask *)_user_context;
-        packageUploadMediaData(uploadTask->mData, _outbuffer, _extend, uploadTask->mMediaType, uploadTask->mToken, uploadTask->mKey, uploadTask->mType, uploadTask->mDate);
+        packageUploadMediaData(uploadTask->mData, _outbuffer, _extend, uploadTask->mMediaType, uploadTask->mToken, uploadTask->mKey, uploadTask->mType, uploadTask->mDate, uploadTask->mFileName);
     } else { //MQTT tasks
       const MQTTTask *mqttTask = (const MQTTTask *)_user_context;
       if (mqttTask->type == MQTT_MSG_PUBLISH) {
