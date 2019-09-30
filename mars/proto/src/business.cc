@@ -89,6 +89,8 @@ extern unsigned char use_key[16];
 namespace mars{
     namespace stn{
 
+    
+    extern std::string getEncodedId(const std::string &id);
 
 const std::string sendMessageTopic = "MS";
 const std::string recallMessageTopic = "MR";
@@ -716,7 +718,9 @@ public:
             if (result.type == 0) {
                 uploadTask->cgi = "/fs";//*/result.server();
             } else if (result.type == 3){
-                uploadTask->cgi = "/" + result.path + "/" + mKey;
+                std::string tempKey = result.path + "/" + mKey;
+                tempKey = getEncodedId(tempKey);
+                uploadTask->cgi = "/" + tempKey;
             } else {
                 uploadTask->cgi = "/" + mKey;
             }

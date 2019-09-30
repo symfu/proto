@@ -56,8 +56,13 @@ void (*shortlink_progress)(uint32_t task_id, uint32_t writed, uint32_t total) =
 	}
 };
 
+extern unsigned char * encrypt_data(const unsigned char* data, unsigned int data_length, unsigned int *output_length, bool rootKey);
+
 namespace mars {
     namespace stn {
+    
+    extern std::string getEncodedId(bool isUserId);
+    
 //        extern const std::string recallMessageTopic;
         const std::string pullMessageTopic = "MP";
         const std::string notifyMessageTopic = "MN";
@@ -578,6 +583,7 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
 
         void packageUploadMediaData(const std::string &data, AutoBuffer& _out_buff, AutoBuffer& _extend, unsigned char mediaType, const std::string &uploadToken, const std::string &key, int type, const std::string &date, const std::string &fileName) {
     
+            char len_str[32] = {0};
             if (type < 2) {
                 std::string fileName = key;
                 
@@ -615,12 +621,26 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                 _extend.AllocWrite(mapStr.size());
                 _extend.Write(mapStr.c_str(), mapStr.size());
             } else if(type >= 2) {
-                unsigned int dataLen = (unsigned int)data.size();
-                char len_str[32] = {0};
-                snprintf(len_str, sizeof(len_str), "%u", dataLen);
+                if (type == 3) {
+                    unsigned int tmpLen = 0;
+                    unsigned char *ptmp = encrypt_data((const unsigned char*)data.c_str(), (unsigned int)data.length(), &tmpLen, false);
+                    std::string out((char*)ptmp, tmpLen);
+                    snprintf(len_str, sizeof(len_str), "%u", tmpLen);
+                    
+                    _out_buff.AllocWrite(tmpLen);
+                    _out_buff.Write(ptmp, tmpLen);
+                    
+                    free(ptmp);
+                    ptmp = NULL;
+                    tmpLen = 0;
+                } else {
+                    unsigned int dataLen = (unsigned int)data.size();
                 
-                _out_buff.AllocWrite(dataLen);
-                _out_buff.Write(data.c_str(), data.length());
+                    snprintf(len_str, sizeof(len_str), "%u", dataLen);
+                
+                    _out_buff.AllocWrite(dataLen);
+                    _out_buff.Write(data.c_str(), data.length());
+                }
                 
                 std::map<std::string, std::string> paramMap;
                 paramMap["method"] = "PUT";
@@ -676,6 +696,9 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                     paramMap[http::HeaderFields::KStringDate] = date;
                 } else if (type == 3) {
                     paramMap["x-amz-date"] = date;
+                    paramMap["x-wfc-cid"] = getEncodedId(false).c_str();
+                    paramMap["x-wfc-uid"] = getEncodedId(true).c_str();
+                    paramMap["x-wfc-size"] = len_str;
                 }
                 
                 std::string mapStr = mapToString(paramMap);
