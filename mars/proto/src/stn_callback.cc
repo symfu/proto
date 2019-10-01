@@ -698,7 +698,9 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                     paramMap["x-amz-date"] = date;
                     paramMap["x-wfc-cid"] = getEncodedId(false).c_str();
                     paramMap["x-wfc-uid"] = getEncodedId(true).c_str();
-                    paramMap["x-wfc-size"] = len_str;
+                    char data_len_str[32] = {0};
+                    snprintf(data_len_str, sizeof(data_len_str), "%lu", data.size());
+                    paramMap["x-wfc-size"] = data_len_str;
                 }
                 
                 std::string mapStr = mapToString(paramMap);

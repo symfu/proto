@@ -720,7 +720,7 @@ public:
             } else if (result.type == 3){
                 std::string tempKey = result.path + "/" + mKey;
                 tempKey = getEncodedId(tempKey);
-                uploadTask->cgi = "/" + tempKey;
+                uploadTask->cgi = "/fs/" + tempKey;
             } else {
                 uploadTask->cgi = "/" + mKey;
             }
