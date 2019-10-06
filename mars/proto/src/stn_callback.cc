@@ -661,7 +661,7 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                     paramMap[http::HeaderFields::KStringContentType] = "video/mp4";
                 } else {
                     if (!subfix.empty()) {
-                        transform(subfix.begin(), subfix.end(), subfix.begin(), ::tolower);
+                        std::transform(subfix.begin(), subfix.end(), subfix.begin(), ::tolower);
                         if (subfix == "jpg" || subfix == "jpeg") {
                             paramMap[http::HeaderFields::KStringContentType] = "image/jpeg";
                         } else if(subfix == "gif") {

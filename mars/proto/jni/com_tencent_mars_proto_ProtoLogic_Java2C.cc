@@ -2066,12 +2066,12 @@ public:
   }
 };
 
-//public static native void uploadMedia(byte[] data, int mediaType, IUploadMediaCallback callback);
+//public static native void uploadMedia(String fileName, byte[] data, int mediaType, IUploadMediaCallback callback);
 JNIEXPORT void JNICALL Java_com_tencent_mars_proto_ProtoLogic_uploadMedia
-		(JNIEnv *_env, jclass clz, jbyteArray jdata, jint mediaType, jobject callback) {
+		(JNIEnv *_env, jclass clz, jstring jfileName, jbyteArray jdata, jint mediaType, jobject callback) {
     jsize len  = _env->GetArrayLength(jdata);
     char* data = (char*)_env->GetByteArrayElements(jdata, 0);
-    mars::stn::uploadGeneralMedia(std::string((char *)data, len), mediaType, new GeneralUpdateMediaCallback(_env->NewGlobalRef(callback)));
+    mars::stn::uploadGeneralMedia(ScopedJstring(_env, jfileName).GetChar(), std::string((char *)data, len), mediaType, new GeneralUpdateMediaCallback(_env->NewGlobalRef(callback)));
 }
 
 //public static native void modifyMyInfo(Map<Integer, String> values, IGeneralCallback callback);

@@ -386,7 +386,7 @@ public class ProtoLogic {
     public static native ProtoUserInfo[] getUserInfos(String[] userIds, String groupId);
 
     //- (void)uploadMedia:(NSData *)mediaData mediaType:(WFCCMediaType)mediaType success:(void(^)(NSString *remoteUrl))successBlock error:(void(^)(int error_code))errorBlock
-    public static native void uploadMedia(byte[] data, int mediaType, IUploadMediaCallback callback);
+    public static native void uploadMedia(String fileName, byte[] data, int mediaType, IUploadMediaCallback callback);
 
     //-(void)modifyMyInfo:(NSDictionary<NSNumber */*ModifyMyInfoType*/, NSString *> *)values
         //success:(void(^)())successBlock
