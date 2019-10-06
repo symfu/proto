@@ -672,11 +672,11 @@ static const std::string UploadBoundary = "--727f6ee7446cbf7263";
                             paramMap[http::HeaderFields::KStringContentType] = "audio/mpeg";
                         } else if(subfix == "mp4") {
                             paramMap[http::HeaderFields::KStringContentType] = "video/mp4";
-                        } else if(subfix == "doc") {
+                        } else if(subfix == "doc" || subfix == "docx") {
                             paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-word";
-                        } else if(subfix == "xls") {
+                        } else if(subfix == "xls" || subfix == "xlsx") {
                             paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-xls";
-                        } else if(subfix == "ppt") {
+                        } else if(subfix == "ppt" || subfix == "pptx") {
                             paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-powerpoint";
                         } else if(subfix == "pps") {
                             paramMap[http::HeaderFields::KStringContentType] = "application/vnd.ms-powerpoint";
