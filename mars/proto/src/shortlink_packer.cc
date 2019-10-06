@@ -34,7 +34,7 @@ static std::string encodedClientId;
 static std::string encodedUserId;
 
 namespace mars { namespace stn {
-    std::string getEncodedId(std::string id) {
+    std::string getEncodedId(const std::string &id) {
         
         
         unsigned int tmpLen = 0;
